@@ -19,20 +19,23 @@ def ml():
 @click.option('--advanced', is_flag=True, help='Train advanced ensemble models')
 @click.option('--quick', is_flag=True, help='Quick training (fewer epochs)')
 def train(advanced, quick):
-    """Train ML models for anomaly detection."""
+    """Train ML models for anomaly detection (optional - models auto-train on first use)."""
     console.print(Panel("[bold cyan]ML Model Training[/bold cyan]", expand=False))
+    
+    console.print("\n[dim]Note: Training is optional. Models auto-train on first use with synthetic data.[/dim]")
+    console.print("[dim]Use this command to retrain with custom parameters.[/dim]\n")
     
     detector = get_detector()
     
     if advanced:
-        console.print("\n[yellow]Training advanced ensemble (this may take a few minutes)...[/yellow]\n")
+        console.print("[yellow]Training advanced ensemble (this may take a few minutes)...[/yellow]\n")
     else:
-        console.print("\n[yellow]Training basic models...[/yellow]\n")
+        console.print("[yellow]Training basic models...[/yellow]\n")
     
     detector.train(verbose=True)
     
     console.print("\n[green]✓ Training complete![/green]")
-    console.print(f"[dim]Models saved to: {detector.models}[/dim]\n")
+    console.print(f"[dim]Model hash (ZK proof): {detector.model_hash[:32]}...[/dim]\n")
 
 
 @ml.command()
@@ -44,14 +47,22 @@ def info():
     console.print()
     
     if not detector.models:
-        console.print("[yellow]No models trained yet. Run 'cybershield ml train' first.[/yellow]")
+        console.print("[yellow]Models will auto-train on first use (30 seconds).[/yellow]")
+        console.print("[dim]Or run 'cybershield ml train' to train now.[/dim]")
         return
     
     for model_name in detector.models.keys():
         console.print(f"  [green]✓[/green] {model_name}")
     
     console.print(f"\n  Total models: [cyan]{len(detector.models)}[/cyan]")
-    console.print(f"  Features: [cyan]{len(detector.feature_names)}[/cyan]\n")
+    console.print(f"  Features: [cyan]{len(detector.feature_names)}[/cyan]")
+    
+    # Show ZK proof info
+    if detector.model_hash:
+        console.print(f"\n  [yellow]ZK Proof Hash:[/yellow] [dim]{detector.model_hash[:32]}...[/dim]")
+        console.print(f"  [dim]Verifies model integrity without exposing training data[/dim]")
+    
+    console.print()
 
 
 @ml.command()

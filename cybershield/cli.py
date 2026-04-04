@@ -12,7 +12,13 @@ from rich.panel import Panel
 from rich.table import Table
 from rich import box
 
-from .commands import node, network, ml, attack, status
+from .commands.node import node
+from .commands.network import network
+from .commands.ml import ml
+from .commands.attack import attack
+from .commands.status import status
+from .commands.dashboard import dashboard
+from .commands.api import api
 
 console = Console()
 
@@ -48,11 +54,13 @@ def main():
 
 
 # Register command groups
-main.add_command(node.node)
-main.add_command(network.network)
-main.add_command(ml.ml)
-main.add_command(attack.attack)
-main.add_command(status.status)
+main.add_command(node)
+main.add_command(network)
+main.add_command(ml)
+main.add_command(attack)
+main.add_command(status)
+main.add_command(dashboard)
+main.add_command(api)
 
 
 @main.command()

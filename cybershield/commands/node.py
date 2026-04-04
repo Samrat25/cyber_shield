@@ -17,6 +17,7 @@ from ..ml import get_detector
 from ..blockchain.aptos import AptosClient
 from ..storage.ipfs import IPFSClient
 from ..network.p2p_node import P2PNode
+from ..core.db import log_event, upsert_node
 
 console = Console()
 
@@ -128,6 +129,9 @@ def register(force):
     }
     state_file.write_text(json.dumps(state, indent=2))
     
+    # Log to Supabase
+    upsert_node(node_id, local_ip, "online", reg_cid=cid, reg_tx=tx_hash)
+    
     console.print(Panel(
         f"[bold green]✓ Node '{node_id}' registered successfully![/bold green]\n"
         f"Blockchain and IPFS records confirmed.",
@@ -185,9 +189,15 @@ async def _monitor_async(node_id, state, enable_p2p, port):
     
     check_count = 0
     
+    # Add node_id to metrics for logging
+    def add_node_id(m):
+        m["node_id"] = node_id
+        return m
+    
     try:
         while True:
             metrics = monitor.get_metrics()
+            metrics["node_id"] = node_id
             check_count += 1
             
             # ML detection
@@ -196,6 +206,9 @@ async def _monitor_async(node_id, state, enable_p2p, port):
             ts = metrics["timestamp"][11:19]
             
             if verdict == "safe":
+                # Log safe event to Supabase
+                log_event(metrics, "safe", confidence)
+                
                 # Show peer count if P2P enabled
                 peer_info = f"  Peers: {p2p_node.get_peer_count()}" if p2p_node else ""
                 
@@ -249,6 +262,9 @@ async def _monitor_async(node_id, state, enable_p2p, port):
                 
                 console.print(f"  [green]✓[/green] TX Hash: [cyan]{tx_hash}[/cyan]")
                 
+                # Log anomaly to Supabase
+                log_event(metrics, "anomaly", confidence, ipfs_cid=cid, aptos_tx=tx_hash)
+                
                 # Broadcast to peers
                 if p2p_node:
                     await p2p_node.broadcast({
@@ -268,6 +284,9 @@ async def _monitor_async(node_id, state, enable_p2p, port):
                 
                 state_file = LOGS_DIR / "node_state.json"
                 state_file.write_text(json.dumps(state, indent=2))
+                
+                # Update node status in Supabase
+                upsert_node(node_id, metrics.get("ip", "unknown"), "COMPROMISED")
                 
                 console.print(Panel(
                     f"[bold red]NODE QUARANTINED[/bold red]\n\n"

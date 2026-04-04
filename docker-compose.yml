@@ -129,23 +129,19 @@ services:
       - cybershield-network
     restart: unless-stopped
 
-  # Web dashboard (optional)
+  # Web dashboard
   dashboard:
     build:
       context: .
       dockerfile: Dockerfile.dashboard
     container_name: cybershield-dashboard
     environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DB=cybershield
-      - POSTGRES_USER=cybershield
-      - POSTGRES_PASSWORD=cybershield123
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
       - APTOS_NODE_URL=${APTOS_NODE_URL}
+      - APTOS_ADDRESS=${APTOS_ADDRESS}
     ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-      - blockchain-indexer
+      - "7000:7000"
     networks:
       - cybershield-network
     restart: unless-stopped
