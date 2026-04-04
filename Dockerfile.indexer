@@ -1,0 +1,24 @@
+# Blockchain Indexer - Indexes all on-chain events
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+RUN pip install --no-cache-dir \
+    aptos-sdk \
+    psycopg2-binary \
+    python-dotenv \
+    requests
+
+# Copy indexer code
+COPY indexer/ /app/indexer/
+COPY cybershield/config.py /app/cybershield/config.py
+
+# Run indexer
+CMD ["python", "-u", "indexer/main.py"]

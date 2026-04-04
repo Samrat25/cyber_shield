@@ -1,0 +1,161 @@
+version: '3.8'
+
+services:
+  # Main CyberShield node
+  cybershield-node-1:
+    build: .
+    container_name: cybershield-node-1
+    environment:
+      - NODE_ID=node-1
+      - P2P_PORT=8765
+      - APTOS_NETWORK=${APTOS_NETWORK}
+      - APTOS_NODE_URL=${APTOS_NODE_URL}
+      - APTOS_PRIVATE_KEY=${APTOS_PRIVATE_KEY}
+      - APTOS_ADDRESS=${APTOS_ADDRESS}
+      - PINATA_JWT=${PINATA_JWT}
+    ports:
+      - "8765:8765"
+    volumes:
+      - node1-data:/root/.cybershield
+      - ./logs:/app/logs
+    networks:
+      - cybershield-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        cybershield node init &&
+        cybershield ml train --advanced &&
+        cybershield node register &&
+        cybershield node monitor --p2p --port 8765
+      "
+
+  # Second node for P2P testing
+  cybershield-node-2:
+    build: .
+    container_name: cybershield-node-2
+    environment:
+      - NODE_ID=node-2
+      - P2P_PORT=8766
+      - APTOS_NETWORK=${APTOS_NETWORK}
+      - APTOS_NODE_URL=${APTOS_NODE_URL}
+      - APTOS_PRIVATE_KEY=${APTOS_PRIVATE_KEY}
+      - APTOS_ADDRESS=${APTOS_ADDRESS}
+      - PINATA_JWT=${PINATA_JWT}
+      - BOOTSTRAP_NODES=cybershield-node-1:8765
+    ports:
+      - "8766:8766"
+    volumes:
+      - node2-data:/root/.cybershield
+    networks:
+      - cybershield-network
+    depends_on:
+      - cybershield-node-1
+    restart: unless-stopped
+    command: >
+      sh -c "
+        sleep 10 &&
+        cybershield node init &&
+        cybershield ml train &&
+        cybershield node register &&
+        cybershield network connect cybershield-node-1:8765 &&
+        cybershield node monitor --p2p --port 8766
+      "
+
+  # Third node for P2P testing
+  cybershield-node-3:
+    build: .
+    container_name: cybershield-node-3
+    environment:
+      - NODE_ID=node-3
+      - P2P_PORT=8767
+      - APTOS_NETWORK=${APTOS_NETWORK}
+      - APTOS_NODE_URL=${APTOS_NODE_URL}
+      - APTOS_PRIVATE_KEY=${APTOS_PRIVATE_KEY}
+      - APTOS_ADDRESS=${APTOS_ADDRESS}
+      - PINATA_JWT=${PINATA_JWT}
+      - BOOTSTRAP_NODES=cybershield-node-1:8765
+    ports:
+      - "8767:8767"
+    volumes:
+      - node3-data:/root/.cybershield
+    networks:
+      - cybershield-network
+    depends_on:
+      - cybershield-node-1
+    restart: unless-stopped
+    command: >
+      sh -c "
+        sleep 15 &&
+        cybershield node init &&
+        cybershield ml train &&
+        cybershield node register &&
+        cybershield network connect cybershield-node-1:8765 &&
+        cybershield node monitor --p2p --port 8767
+      "
+
+  # Blockchain indexer - indexes all on-chain events
+  blockchain-indexer:
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    container_name: cybershield-indexer
+    environment:
+      - APTOS_NODE_URL=${APTOS_NODE_URL}
+      - APTOS_ADDRESS=${APTOS_ADDRESS}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=cybershield
+      - POSTGRES_USER=cybershield
+      - POSTGRES_PASSWORD=cybershield123
+    depends_on:
+      - postgres
+    networks:
+      - cybershield-network
+    restart: unless-stopped
+
+  # PostgreSQL for indexer
+  postgres:
+    image: postgres:15-alpine
+    container_name: cybershield-postgres
+    environment:
+      - POSTGRES_DB=cybershield
+      - POSTGRES_USER=cybershield
+      - POSTGRES_PASSWORD=cybershield123
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./indexer/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - cybershield-network
+    restart: unless-stopped
+
+  # Web dashboard (optional)
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: cybershield-dashboard
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=cybershield
+      - POSTGRES_USER=cybershield
+      - POSTGRES_PASSWORD=cybershield123
+      - APTOS_NODE_URL=${APTOS_NODE_URL}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - blockchain-indexer
+    networks:
+      - cybershield-network
+    restart: unless-stopped
+
+volumes:
+  node1-data:
+  node2-data:
+  node3-data:
+  postgres-data:
+
+networks:
+  cybershield-network:
+    driver: bridge

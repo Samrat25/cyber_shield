@@ -1,0 +1,181 @@
+Metadata-Version: 2.4
+Name: cybershield
+Version: 1.0.0
+Summary: Blockchain-based Distributed Intrusion Detection System with ML
+Home-page: https://github.com/yourusername/cybershield
+Author: CyberShield Team
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Security
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: psutil>=5.9.0
+Requires-Dist: scikit-learn>=1.3.0
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: requests>=2.31.0
+Requires-Dist: rich>=13.0.0
+Requires-Dist: aptos-sdk>=0.11.0
+Requires-Dist: click>=8.1.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: websockets>=12.0
+Requires-Dist: aiohttp>=3.9.0
+Requires-Dist: cryptography>=41.0.0
+Requires-Dist: tensorflow>=2.15.0
+Requires-Dist: keras>=3.0.0
+Requires-Dist: xgboost>=2.0.0
+Requires-Dist: lightgbm>=4.0.0
+Requires-Dist: pandas>=2.0.0
+Requires-Dist: matplotlib>=3.7.0
+Requires-Dist: seaborn>=0.12.0
+Dynamic: author
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# CyberShield — Blockchain-Based Intrusion Detection System
+
+A real-time intrusion detection system that combines ML anomaly detection with blockchain verification using Aptos testnet and IPFS.
+
+## What's Real vs Mocked
+
+### Real Components
+- Laptop metrics collection (psutil)
+- ML anomaly detection (Isolation Forest)
+- Pinata IPFS — CID and gateway URL
+- Aptos testnet transactions
+- Move smart contract on-chain
+- Aptos explorer showing your transactions
+
+### Mocked Components
+- Node-2, Node-3 heartbeats (Python script)
+- P2P connection between nodes (printed output)
+- Node disconnect sequence (simulated)
+
+## Setup Instructions
+
+### Step 1: Deploy the Move Contract (10 minutes)
+
+```bash
+# 1. Install Aptos CLI
+curl -fsSL "https://aptos.dev/scripts/install_cli.py" | python3
+
+# 2. Initialize account on testnet
+aptos init --network testnet
+# Press Enter to generate new key
+# SAVE the output: address and private key
+
+# 3. Fund your testnet account
+aptos account fund-with-faucet \
+  --account default \
+  --faucet-url https://faucet.testnet.aptoslabs.com \
+  --amount 100000000
+
+# 4. Compile the contract
+cd contract
+aptos move compile --named-addresses cybershield_addr=default
+
+# 5. Deploy to testnet
+aptos move publish \
+  --named-addresses cybershield_addr=default \
+  --network testnet
+# Save the TX hash from output
+
+# 6. Initialize the on-chain store
+aptos move run \
+  --function-id default::threat_logger::init_store \
+  --network testnet
+
+cd ..
+```
+
+### Step 2: Configure Environment
+
+Edit `.env` file with your credentials:
+- Get Pinata JWT from https://app.pinata.cloud/
+- Use Aptos address and private key from step 1
+
+### Step 3: Install Python Dependencies
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Step 4: Train ML Model
+
+```bash
+python3 cli.py train
+```
+
+## Running the Demo
+
+### Terminal 1: Your Real Node
+```bash
+python3 cli.py register
+# Wait for IPFS CID and Aptos TX confirmation
+python3 cli.py monitor
+```
+
+### Terminal 2: Mock Peer Nodes
+```bash
+python3 mock_nodes.py
+```
+
+### Terminal 3: Attack Simulation (Kali)
+```bash
+# Ready but don't launch until demo time
+sudo hping3 --flood -p 80 <your-ip> &
+nmap -sV -T4 <your-ip> &
+stress --cpu 8 --timeout 25
+```
+
+### Browser Tabs (Open Before Demo)
+1. https://explorer.aptoslabs.com/account/<YOUR_ADDRESS>?network=testnet
+2. https://gateway.pinata.cloud/ipfs/<reg_cid>
+
+## Commands
+
+- `python3 cli.py register` - Register node on IPFS + Aptos
+- `python3 cli.py monitor` - Start real-time monitoring
+- `python3 cli.py status` - Show current node state
+- `python3 cli.py train` - Train/retrain ML model
+
+## How It Works
+
+1. System monitors CPU, memory, processes, and network metrics
+2. ML model (Isolation Forest) detects anomalies
+3. On anomaly detection:
+   - Evidence is pinned to IPFS (permanent, verifiable)
+   - Transaction is logged on Aptos blockchain (immutable)
+   - Node is quarantined from network
+4. All evidence is publicly verifiable via IPFS gateway and Aptos explorer
+
+## Project Structure
+
+```
+cybershield/
+├── contract/
+│   ├── Move.toml
+│   └── sources/
+│       └── threat_logger.move
+├── core/
+│   ├── aptos.py          # Blockchain integration
+│   ├── pinata.py         # IPFS storage
+│   ├── monitor.py        # System metrics
+│   └── ml_detector.py    # Anomaly detection
+├── cli.py                # Main CLI interface
+├── mock_nodes.py         # Simulated peer nodes
+├── .env                  # Configuration
+└── requirements.txt
+```

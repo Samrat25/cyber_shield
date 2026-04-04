@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include requirements.txt
+recursive-include cybershield *.py
+recursive-include contract *.move *.toml
