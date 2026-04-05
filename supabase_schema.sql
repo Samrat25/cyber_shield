@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS events (
     ml_score FLOAT,
     ipfs_cid TEXT,
     aptos_tx TEXT,
+    threat_type TEXT,
+    threat_label TEXT,
+    severity TEXT,
+    zk_proof TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -28,7 +32,8 @@ CREATE TABLE IF NOT EXISTS nodes (
     reg_cid TEXT,
     reg_tx TEXT,
     registered_at TIMESTAMPTZ DEFAULT NOW(),
-    last_seen TIMESTAMPTZ DEFAULT NOW()
+    last_seen TIMESTAMPTZ DEFAULT NOW(),
+    compromised_at TIMESTAMPTZ
 );
 
 -- Create indexes for performance
@@ -68,6 +73,10 @@ SELECT
     e.ml_score,
     e.ipfs_cid,
     e.aptos_tx,
+    e.threat_type,
+    e.threat_label,
+    e.severity,
+    e.zk_proof,
     e.created_at,
     n.status as node_status
 FROM events e
@@ -84,9 +93,10 @@ SELECT
     n.status,
     n.registered_at,
     n.last_seen,
+    n.compromised_at,
     COUNT(e.id) FILTER (WHERE e.verdict = 'anomaly') as threat_count,
     COUNT(e.id) as total_checks
 FROM nodes n
 LEFT JOIN events e ON n.node_id = e.node_id
-GROUP BY n.id, n.node_id, n.ip, n.status, n.registered_at, n.last_seen
+GROUP BY n.id, n.node_id, n.ip, n.status, n.registered_at, n.last_seen, n.compromised_at
 ORDER BY n.registered_at DESC;

@@ -28,7 +28,9 @@ def get_db():
     return _client
 
 def log_event(metrics: dict, verdict: str, ml_score: float,
-              ipfs_cid: str = None, aptos_tx: str = None):
+              ipfs_cid: str = None, aptos_tx: str = None,
+              threat_type: str = None, threat_label: str = None,
+              severity: str = None, zk_proof: str = None):
     """
     Log every monitoring check to Supabase.
     Called from monitor loop for both safe and anomaly events.
@@ -50,6 +52,10 @@ def log_event(metrics: dict, verdict: str, ml_score: float,
         "ml_score"        : ml_score,
         "ipfs_cid"        : ipfs_cid,
         "aptos_tx"        : aptos_tx,
+        "threat_type"     : threat_type,
+        "threat_label"    : threat_label,
+        "severity"        : severity,
+        "zk_proof"        : zk_proof,
     }
     
     try:
