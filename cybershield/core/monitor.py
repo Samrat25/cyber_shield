@@ -26,6 +26,12 @@ class SystemMonitor:
         # Disk I/O
         disk_io = psutil.disk_io_counters()
         
+        # Disk usage percentage
+        try:
+            disk_usage = psutil.disk_usage('/').percent
+        except Exception:
+            disk_usage = 0.0
+        
         # Get local IP
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -42,7 +48,10 @@ class SystemMonitor:
             "process_count": len(psutil.pids()),
             "net_bytes_sent": net_io.bytes_sent,
             "net_bytes_recv": net_io.bytes_recv,
+            "net_packets_sent": net_io.packets_sent if hasattr(net_io, 'packets_sent') else 0,
+            "net_packets_recv": net_io.packets_recv if hasattr(net_io, 'packets_recv') else 0,
             "disk_read_bytes": disk_io.read_bytes if disk_io else 0,
             "disk_write_bytes": disk_io.write_bytes if disk_io else 0,
+            "disk_percent": disk_usage,
             "ip": local_ip,
         }

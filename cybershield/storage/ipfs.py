@@ -32,7 +32,7 @@ class IPFSClient:
             f"{self.base_url}/pinning/pinJSONToIPFS",
             headers=self._headers(),
             json=payload,
-            timeout=15
+            timeout=10  # Reduced from 15 to 10 seconds
         )
         response.raise_for_status()
         

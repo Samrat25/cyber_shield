@@ -101,6 +101,15 @@
             color: #22c55e;
         }
         
+        @keyframes pulse-ring {
+            0%   { r: 26px; opacity: 0.7; }
+            100% { r: 44px; opacity: 0;   }
+        }
+        
+        .pulse-anim {
+            animation: pulse-ring 1.5s ease-out infinite;
+        }
+        
         .chart-container {
             background: rgba(15, 23, 42, 0.8);
             padding: 25px;
@@ -268,6 +277,25 @@
         </div>
     </div>
     
+    <!-- ── P2P TOPOLOGY DIAGRAM ─────────────────────────── -->
+    <div class="chart-container" style="margin-bottom:24px" id="p2p-card">
+        <div class="chart-title">🌐 P2P Network Topology</div>
+        <div style="position:relative;height:260px">
+            <svg id="p2p-svg" width="100%" height="260" viewBox="0 0 680 260"
+                 style="display:block"></svg>
+            <div id="p2p-legend" style="position:absolute;top:8px;right:12px;font-size:11px;color:#64748b">
+                <span style="color:#4ade80">●</span> real online &nbsp;
+                <span style="color:#f87171">●</span> compromised &nbsp;
+                <span style="color:#fbbf24">●</span> peer (real) &nbsp;
+                <span style="color:#64748b">●</span> mock
+            </div>
+        </div>
+        <div id="p2p-status-bar" style="margin-top:8px;padding-top:10px;
+            border-top:1px solid #334155;font-size:12px;color:#64748b">
+            Loading network...
+        </div>
+    </div>
+    
     <div class="chart-container">
         <div class="chart-title">📊 Real-Time System Metrics</div>
         <canvas id="metricsChart"></canvas>
@@ -303,7 +331,7 @@
             document.body.innerHTML = '<div style="text-align:center;padding:100px;"><h2 style="color:#f87171;">Access Denied</h2><p style="color:#94a3b8;">Missing dashboard key. Please use the link provided by the CLI.</p></div>';
         }
         
-        // Chart setup
+        // Chart setup with improved visualization
         const ctx = document.getElementById('metricsChart').getContext('2d');
         const chart = new Chart(ctx, {
             type: 'line',
@@ -316,7 +344,8 @@
                         borderColor: '#38bdf8',
                         backgroundColor: 'rgba(56, 189, 248, 0.1)',
                         tension: 0.4,
-                        fill: true
+                        fill: true,
+                        yAxisID: 'y'
                     },
                     {
                         label: 'Memory %',
@@ -324,15 +353,18 @@
                         borderColor: '#818cf8',
                         backgroundColor: 'rgba(129, 140, 248, 0.1)',
                         tension: 0.4,
-                        fill: true
+                        fill: true,
+                        yAxisID: 'y'
                     },
                     {
-                        label: 'ML Score',
+                        label: 'Anomaly Risk %',
                         data: [],
-                        borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
                         tension: 0.4,
-                        fill: true
+                        fill: true,
+                        borderWidth: 3,
+                        yAxisID: 'y-risk'
                     }
                 ]
             },
@@ -340,20 +372,71 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 aspectRatio: 2.5,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 plugins: {
                     legend: {
-                        labels: { color: '#e2e8f0' }
+                        labels: { 
+                            color: '#e2e8f0',
+                            font: { size: 13 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#e2e8f0',
+                        bodyColor: '#94a3b8',
+                        borderColor: '#38bdf8',
+                        borderWidth: 1
                     }
                 },
                 scales: {
                     y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
                         beginAtZero: true,
                         max: 100,
-                        ticks: { color: '#94a3b8' },
-                        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        title: {
+                            display: true,
+                            text: 'CPU / Memory %',
+                            color: '#94a3b8'
+                        }
+                    },
+                    'y-risk': {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { 
+                            color: '#f59e0b',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: { 
+                            drawOnChartArea: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Anomaly Risk',
+                            color: '#f59e0b'
+                        }
                     },
                     x: {
-                        ticks: { color: '#94a3b8' },
+                        ticks: { 
+                            color: '#94a3b8',
+                            maxTicksLimit: 10
+                        },
                         grid: { color: 'rgba(148, 163, 184, 0.1)' }
                     }
                 }
@@ -370,10 +453,48 @@
                 if (metricsData.history && metricsData.history.length > 0) {
                     const history = metricsData.history.slice(-30); // Last 30 readings
                     
-                    chart.data.labels = history.map((_, i) => i);
+                    // Time labels
+                    chart.data.labels = history.map((m, i) => {
+                        if (m.timestamp) {
+                            const t = new Date(m.timestamp);
+                            return t.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        }
+                        return i;
+                    });
+                    
+                    // CPU and Memory
                     chart.data.datasets[0].data = history.map(m => m.cpu_percent || 0);
                     chart.data.datasets[1].data = history.map(m => m.memory_percent || 0);
-                    chart.data.datasets[2].data = history.map(m => (m.ml_score || 0) * 100);
+                    
+                    // Anomaly Risk % - convert ML score to risk percentage
+                    // ml_score: negative = anomaly, positive = safe
+                    // Convert to 0-100% risk scale
+                    chart.data.datasets[2].data = history.map(m => {
+                        const score = m.ml_score || 0;
+                        const verdict = m.verdict || 'safe';
+                        
+                        if (verdict === 'anomaly') {
+                            // Anomaly: show high risk (60-100%)
+                            return Math.min(100, 60 + Math.abs(score) * 100);
+                        } else {
+                            // Safe: show low risk (0-40%)
+                            return Math.max(0, 40 - score * 80);
+                        }
+                    });
+                    
+                    // Update chart colors based on latest risk
+                    const latestRisk = chart.data.datasets[2].data[chart.data.datasets[2].data.length - 1] || 0;
+                    if (latestRisk > 60) {
+                        chart.data.datasets[2].borderColor = '#ef4444'; // Red for high risk
+                        chart.data.datasets[2].backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    } else if (latestRisk > 40) {
+                        chart.data.datasets[2].borderColor = '#f59e0b'; // Orange for medium risk
+                        chart.data.datasets[2].backgroundColor = 'rgba(245, 158, 11, 0.1)';
+                    } else {
+                        chart.data.datasets[2].borderColor = '#22c55e'; // Green for low risk
+                        chart.data.datasets[2].backgroundColor = 'rgba(34, 197, 94, 0.1)';
+                    }
+                    
                     chart.update('none');
                 }
                 
@@ -424,21 +545,238 @@
                             <div class="event-detail"><strong>ML Score:</strong> ${(event.ml_score || 0).toFixed(3)}</div>
                         </div>
                         ${event.ipfs_cid ? `
-                            <a href="https://gateway.pinata.cloud/ipfs/${event.ipfs_cid}" 
-                               target="_blank" class="blockchain-link">
-                                📦 IPFS: ${event.ipfs_cid.substring(0, 20)}...
-                            </a>
+                            <div class="event-detail" style="margin-top:8px">
+                                <strong>📦 IPFS CID:</strong> 
+                                <code style="background:#1e293b;padding:2px 6px;border-radius:4px;font-size:11px">${event.ipfs_cid}</code>
+                                <a href="https://gateway.pinata.cloud/ipfs/${event.ipfs_cid}" 
+                                   target="_blank" class="blockchain-link" style="margin-left:8px">
+                                    View on Gateway →
+                                </a>
+                            </div>
                         ` : ''}
                         ${event.aptos_tx ? `
-                            <a href="https://explorer.aptoslabs.com/txn/${event.aptos_tx}?network=testnet" 
-                               target="_blank" class="blockchain-link">
-                                ⛓️ TX: ${event.aptos_tx.substring(0, 20)}...
-                            </a>
+                            <div class="event-detail" style="margin-top:4px">
+                                <strong>⛓️ Aptos TX:</strong> 
+                                <code style="background:#1e293b;padding:2px 6px;border-radius:4px;font-size:11px">${event.aptos_tx.substring(0, 30)}...</code>
+                                <a href="https://explorer.aptoslabs.com/txn/${event.aptos_tx}?network=testnet" 
+                                   target="_blank" class="blockchain-link" style="margin-left:8px">
+                                    View on Explorer →
+                                </a>
+                            </div>
                         ` : ''}
                     </div>
                 `;
             }).join('');
         }
+        
+        /* ── P2P TOPOLOGY ─────────────────────────────────────────── */
+        const P2P_POS = {
+            0: { x: 340, y: 90  },   // primary node — top center
+            1: { x: 160, y: 200 },   // peer 1 — bottom left
+            2: { x: 340, y: 200 },   // peer 2 — bottom center
+            3: { x: 520, y: 200 },   // peer 3 — bottom right
+        };
+        
+        function nodeColor(n) {
+            if (n.status === "COMPROMISED" || n.status === "compromised") return "#f87171";
+            if (n.type === "mock")    return "#64748b";
+            if (n.role === "primary") return "#4ade80";
+            return "#fbbf24";   // real peer
+        }
+        
+        function svgEl(tag, attrs) {
+            const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+            Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+            return el;
+        }
+        
+        function drawP2P(data) {
+            const svg   = document.getElementById("p2p-svg");
+            svg.innerHTML = "";
+            
+            const nodes = data.nodes || [];
+            const edges = data.edges || [];
+            
+            // Assign positions
+            const pos = {};
+            nodes.forEach((n, i) => { pos[n.id] = P2P_POS[i] || { x: 100+i*120, y: 180 }; });
+            
+            // Draw edges first (behind nodes)
+            edges.forEach(e => {
+                const a = pos[e.from], b = pos[e.to];
+                if (!a || !b) return;
+                
+                if (e.severed) {
+                    // Severed: dashed red line with X label
+                    const line = svgEl("line", {
+                        x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+                        stroke: "#f87171", "stroke-width": "1.5",
+                        "stroke-dasharray": "8 5"
+                    });
+                    svg.appendChild(line);
+                    
+                    // "SEVERED" label at midpoint
+                    const mx = (a.x+b.x)/2, my = (a.y+b.y)/2;
+                    const bg = svgEl("rect", {
+                        x: mx-26, y: my-9, width: 52, height: 16, rx: 4,
+                        fill: "#7f1d1d"
+                    });
+                    svg.appendChild(bg);
+                    const lt = svgEl("text", {
+                        x: mx, y: my+3,
+                        "text-anchor": "middle", "font-size": "9",
+                        fill: "#fca5a5", "font-family": "system-ui", "font-weight": "600"
+                    });
+                    lt.textContent = "SEVERED";
+                    svg.appendChild(lt);
+                    
+                } else {
+                    // Active edge
+                    const color = e.real ? "#fbbf24" : "#334155";
+                    const w     = e.real ? "1.5"     : "1";
+                    const line  = svgEl("line", {
+                        x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+                        stroke: color, "stroke-width": w, opacity: "0.7"
+                    });
+                    svg.appendChild(line);
+                }
+            });
+            
+            // Draw nodes
+            nodes.forEach(n => {
+                const p     = pos[n.id];
+                if (!p) return;
+                const color  = nodeColor(n);
+                const isComp = n.status === "COMPROMISED" || n.status === "compromised";
+                const isPrimary = n.role === "primary";
+                
+                // Pulse ring for compromised
+                if (isComp) {
+                    const pulse = svgEl("circle", {
+                        cx: p.x, cy: p.y, r: "26",
+                        fill: "none", stroke: "#f87171",
+                        "stroke-width": "1.5", opacity: "0.6",
+                        class: "pulse-anim"
+                    });
+                    svg.appendChild(pulse);
+                }
+                
+                // Node glow background
+                const glow = svgEl("circle", {
+                    cx: p.x, cy: p.y,
+                    r: isPrimary ? "30" : "24",
+                    fill: color + "18",
+                    stroke: color,
+                    "stroke-width": isPrimary ? "2" : "1",
+                });
+                svg.appendChild(glow);
+                
+                // Node inner fill
+                const inner = svgEl("circle", {
+                    cx: p.x, cy: p.y, r: isPrimary ? "20" : "16",
+                    fill: color + "33",
+                });
+                svg.appendChild(inner);
+                
+                // Node label (id)
+                const lbl = svgEl("text", {
+                    x: p.x, y: p.y + 4,
+                    "text-anchor": "middle",
+                    "font-size": isPrimary ? "11" : "10",
+                    "font-weight": "600",
+                    fill: color, "font-family": "system-ui"
+                });
+                lbl.textContent = n.id.length > 8 ? n.id.slice(0,7)+"…" : n.id;
+                svg.appendChild(lbl);
+                
+                // IP below node
+                const ip = svgEl("text", {
+                    x: p.x, y: p.y + (isPrimary ? 46 : 38),
+                    "text-anchor": "middle", "font-size": "9",
+                    fill: "#64748b", "font-family": "system-ui"
+                });
+                ip.textContent = n.ip;
+                svg.appendChild(ip);
+                
+                // Status badge above node
+                const badgeTxt = isComp ? "COMPROMISED"
+                               : n.type === "mock" ? "MOCK"
+                               : n.role === "primary" ? "PRIMARY"
+                               : "PEER";
+                const badgeColor = isComp ? "#7f1d1d" : "#1e293b";
+                const badgeTxtColor = isComp ? "#fca5a5" : color;
+                const bw = badgeTxt.length * 6.5 + 12;
+                
+                const badgeBg = svgEl("rect", {
+                    x: p.x - bw/2, y: p.y - (isPrimary ? 46 : 38),
+                    width: bw, height: 14, rx: 3,
+                    fill: badgeColor, opacity: "0.9"
+                });
+                svg.appendChild(badgeBg);
+                const badgeLbl = svgEl("text", {
+                    x: p.x, y: p.y - (isPrimary ? 32 : 28),
+                    "text-anchor": "middle", "font-size": "8",
+                    fill: badgeTxtColor, "font-family": "system-ui",
+                    "font-weight": "600"
+                });
+                badgeLbl.textContent = badgeTxt;
+                svg.appendChild(badgeLbl);
+                
+                // Live CPU/MEM for real peers
+                if (n.cpu != null) {
+                    const metrics = svgEl("text", {
+                        x: p.x, y: p.y + 52,
+                        "text-anchor": "middle", "font-size": "8",
+                        fill: "#94a3b8", "font-family": "system-ui"
+                    });
+                    metrics.textContent = `CPU ${n.cpu?.toFixed(1)}%  MEM ${n.mem?.toFixed(1)}%`;
+                    svg.appendChild(metrics);
+                }
+                
+                // "OS" label for Kali peer
+                if (n.os && n.os.toLowerCase().includes("kali")) {
+                    const os = svgEl("text", {
+                        x: p.x, y: p.y + 62,
+                        "text-anchor": "middle", "font-size": "8",
+                        fill: "#ef4444", "font-family": "system-ui"
+                    });
+                    os.textContent = "Kali Linux";
+                    svg.appendChild(os);
+                }
+            });
+            
+            // Status bar
+            const bar = document.getElementById("p2p-status-bar");
+            const realPeers = (data.real_peers || 0);
+            if (data.compromised) {
+                const lt = data.last_threat || {};
+                bar.innerHTML =
+                    `<span style="color:#f87171">⚠ Primary node COMPROMISED and quarantined</span>` +
+                    (lt.type ? ` — attack: <b style="color:#fca5a5">${lt.type}</b>` : "") +
+                    ` &nbsp;|&nbsp; <span style="color:#4ade80">Peer nodes continue operating normally</span>`;
+                // Flash the card border red
+                document.getElementById("p2p-card").style.borderColor = "#f87171";
+                document.getElementById("p2p-card").style.borderWidth = "1px";
+                document.getElementById("p2p-card").style.borderStyle = "solid";
+            } else {
+                document.getElementById("p2p-card").style.border = "";
+                bar.innerHTML =
+                    `<span style="color:#4ade80">● All nodes online</span>` +
+                    ` &nbsp;·&nbsp; ${nodes.length} nodes` +
+                    ` (${realPeers} real peer${realPeers !== 1 ? "s" : ""} connected)` +
+                    ` &nbsp;·&nbsp; <span style="color:#fbbf24">Real connections shown in amber</span>`;
+            }
+        }
+        
+        async function pollP2P() {
+            try {
+                const r = await fetch(`/api/p2p?key=${sessionKey}`);
+                if (r.ok) drawP2P(await r.json());
+            } catch(e) {}
+        }
+        
+        pollP2P();
+        setInterval(pollP2P, 5000);
         
         // Initial fetch and periodic updates
         fetchData();

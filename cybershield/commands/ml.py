@@ -4,8 +4,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
 
-from ..ml import get_detector
-
 console = Console()
 
 
@@ -20,6 +18,9 @@ def ml():
 @click.option('--quick', is_flag=True, help='Quick training (fewer epochs)')
 def train(advanced, quick):
     """Train ML models for anomaly detection (optional - models auto-train on first use)."""
+    # LAZY IMPORT
+    from ..ml import get_detector
+    
     console.print(Panel("[bold cyan]ML Model Training[/bold cyan]", expand=False))
     
     console.print("\n[dim]Note: Training is optional. Models auto-train on first use with synthetic data.[/dim]")
@@ -41,6 +42,9 @@ def train(advanced, quick):
 @ml.command()
 def info():
     """Show information about trained models."""
+    # LAZY IMPORT
+    from ..ml import get_detector
+    
     detector = get_detector()
     
     console.print(Panel("[bold cyan]ML Model Information[/bold cyan]", expand=False))
@@ -68,7 +72,9 @@ def info():
 @ml.command()
 def test():
     """Test ML models with sample data."""
+    # LAZY IMPORTS
     from ..core.monitor import SystemMonitor
+    from ..ml import get_detector
     
     console.print(Panel("[bold cyan]ML Model Testing[/bold cyan]", expand=False))
     
@@ -91,6 +97,10 @@ def test():
     
     console.print("\n  Model Scores:")
     for model_name, score in model_scores.items():
-        console.print(f"    {model_name}: {score:.3f}")
+        # Handle both numeric and string values
+        if isinstance(score, (int, float)):
+            console.print(f"    {model_name}: {score:.3f}")
+        else:
+            console.print(f"    {model_name}: {score}")
     
     console.print()

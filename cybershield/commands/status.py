@@ -7,7 +7,6 @@ from rich.table import Table
 from rich import box
 
 from ..config import LOGS_DIR, CONFIG_DIR
-from ..blockchain.aptos import AptosClient
 
 console = Console()
 
@@ -54,8 +53,9 @@ def status():
     t.add_row("Registration TX", state.get('reg_tx', 'N/A'))
     t.add_row("Local Threats", str(state.get('threat_count', 0)))
     
-    # Get on-chain count
+    # Get on-chain count (LAZY IMPORT)
     try:
+        from ..blockchain.aptos import AptosClient
         aptos_client = AptosClient()
         onchain_count = aptos_client.get_log_count()
         t.add_row("On-Chain Threats", f"[red]{onchain_count}[/red]")

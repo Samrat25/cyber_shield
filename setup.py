@@ -46,7 +46,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "cybershield=cybershield.cli:main",
+            "cybershield=cybershield.cli:cli",
         ],
     },
     include_package_data=True,

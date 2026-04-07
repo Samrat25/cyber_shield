@@ -14,7 +14,7 @@ def pin_json(data: dict, name: str = "cybershield") -> str:
         "pinataContent" : {**data, "pinned_at": datetime.datetime.now(datetime.UTC).isoformat()},
         "pinataMetadata": {"name": name}
     }
-    r = requests.post(f"{BASE}/pinning/pinJSONToIPFS", headers=_h(), json=payload, timeout=15)
+    r = requests.post(f"{BASE}/pinning/pinJSONToIPFS", headers=_h(), json=payload, timeout=20)
     r.raise_for_status()
     return r.json()["IpfsHash"]
 

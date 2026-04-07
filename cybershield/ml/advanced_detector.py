@@ -6,7 +6,6 @@ Combines multiple ML approaches for robust threat detection
 
 import pickle
 import numpy as np
-import pandas as pd
 from pathlib import Path
 from typing import Dict, Tuple, List
 from sklearn.ensemble import IsolationForest
@@ -50,64 +49,96 @@ class AdvancedAnomalyDetector:
         self.zk_proof_enabled = True  # Zero-knowledge proof for privacy
         self.model_hash = None  # Cryptographic hash of model weights
         
+    def _load_baseline(self):
+        """Load YOUR machine's actual baseline from file."""
+        import json
+        from pathlib import Path
+        
+        paths = [
+            Path("logs/baseline.json"),
+            Path.home() / ".cybershield" / "baseline.json",
+        ]
+        
+        for p in paths:
+            if p.exists():
+                with open(p) as f:
+                    return json.load(f)
+        
+        # Fallback - high-memory Windows default
+        return {
+            "cpu_mean": 25.0, "cpu_std": 10.0,
+            "mem_mean": 92.0, "mem_std": 4.0,
+            "prc_mean": 200.0, "prc_std": 30.0,
+            "pkt_mean": 500.0, "pkt_std": 300.0,
+            "byt_mean": 100000.0, "byt_std": 80000.0,
+            "disk_mean": 70.0, "disk_std": 10.0,
+        }
+    
     def _generate_training_data(self, n_samples=1000):
-        """Generate synthetic normal and anomalous data for training."""
-        # Normal data
+        """Generate synthetic normal and anomalous data based on YOUR baseline."""
+        baseline = self._load_baseline()
+        
+        # Normal data - centered around YOUR machine's actual baseline
         normal_data = []
         for _ in range(int(n_samples * 0.9)):
             normal_data.append([
-                np.random.uniform(5, 35),      # cpu_percent
-                np.random.uniform(30, 65),     # memory_percent
-                np.random.randint(100, 180),   # process_count
-                np.random.uniform(1e6, 1e8),   # net_bytes_sent
-                np.random.uniform(1e6, 1e8),   # net_bytes_recv
-                np.random.uniform(1e6, 1e7),   # disk_read
-                np.random.uniform(1e6, 1e7),   # disk_write
+                np.clip(np.random.normal(baseline["cpu_mean"], baseline["cpu_std"]), 0, 100),
+                np.clip(np.random.normal(baseline["mem_mean"], baseline["mem_std"]), 0, 100),
+                np.clip(np.random.normal(baseline["prc_mean"], baseline["prc_std"]), 10, 800),
+                np.clip(np.random.normal(baseline["byt_mean"], baseline["byt_std"]), 0, None),
+                np.clip(np.random.normal(baseline["byt_mean"], baseline["byt_std"]), 0, None),
+                np.clip(np.random.normal(baseline.get("disk_mean", 70), baseline.get("disk_std", 10)), 0, 100),
+                np.clip(np.random.normal(baseline.get("disk_mean", 70), baseline.get("disk_std", 10)), 0, 100),
             ])
         
-        # Anomalous data
+        # Anomalous data - DEVIATIONS from YOUR baseline (not hardcoded values)
         anomaly_data = []
         for _ in range(int(n_samples * 0.1)):
             anomaly_type = np.random.choice(['cpu', 'memory', 'network', 'disk'])
+            
             if anomaly_type == 'cpu':
+                # CPU spike: 5-8 sigma above baseline
                 anomaly_data.append([
-                    np.random.uniform(80, 100),    # High CPU
-                    np.random.uniform(30, 65),
-                    np.random.randint(100, 180),
-                    np.random.uniform(1e6, 1e8),
-                    np.random.uniform(1e6, 1e8),
-                    np.random.uniform(1e6, 1e7),
-                    np.random.uniform(1e6, 1e7),
+                    np.clip(baseline["cpu_mean"] + np.random.uniform(5, 8) * baseline["cpu_std"], 0, 100),
+                    np.clip(np.random.normal(baseline["mem_mean"], baseline["mem_std"]), 0, 100),
+                    np.clip(np.random.normal(baseline["prc_mean"], baseline["prc_std"]), 10, 800),
+                    np.clip(np.random.normal(baseline["byt_mean"], baseline["byt_std"]), 0, None),
+                    np.clip(np.random.normal(baseline["byt_mean"], baseline["byt_std"]), 0, None),
+                    np.clip(np.random.normal(baseline.get("disk_mean", 70), baseline.get("disk_std", 10)), 0, 100),
+                    np.clip(np.random.normal(baseline.get("disk_mean", 70), baseline.get("disk_std", 10)), 0, 100),
                 ])
             elif anomaly_type == 'memory':
+                # Memory spike: 4-6 sigma above baseline
                 anomaly_data.append([
-                    np.random.uniform(5, 35),
-                    np.random.uniform(85, 100),    # High memory
-                    np.random.randint(200, 300),   # Many processes
-                    np.random.uniform(1e6, 1e8),
-                    np.random.uniform(1e6, 1e8),
-                    np.random.uniform(1e6, 1e7),
-                    np.random.uniform(1e6, 1e7),
+                    np.clip(np.random.normal(baseline["cpu_mean"], baseline["cpu_std"]), 0, 100),
+                    np.clip(baseline["mem_mean"] + np.random.uniform(4, 6) * baseline["mem_std"], 0, 100),
+                    np.clip(baseline["prc_mean"] + np.random.uniform(3, 5) * baseline["prc_std"], 10, 800),
+                    np.clip(np.random.normal(baseline["byt_mean"], baseline["byt_std"]), 0, None),
+                    np.clip(np.random.normal(baseline["byt_mean"], baseline["byt_std"]), 0, None),
+                    np.clip(np.random.normal(baseline.get("disk_mean", 70), baseline.get("disk_std", 10)), 0, 100),
+                    np.clip(np.random.normal(baseline.get("disk_mean", 70), baseline.get("disk_std", 10)), 0, 100),
                 ])
             elif anomaly_type == 'network':
+                # Network flood: 6-10 sigma above baseline
                 anomaly_data.append([
-                    np.random.uniform(5, 35),
-                    np.random.uniform(30, 65),
-                    np.random.randint(100, 180),
-                    np.random.uniform(1e9, 1e10),  # High network
-                    np.random.uniform(1e9, 1e10),
-                    np.random.uniform(1e6, 1e7),
-                    np.random.uniform(1e6, 1e7),
+                    np.clip(np.random.normal(baseline["cpu_mean"], baseline["cpu_std"]), 0, 100),
+                    np.clip(np.random.normal(baseline["mem_mean"], baseline["mem_std"]), 0, 100),
+                    np.clip(np.random.normal(baseline["prc_mean"], baseline["prc_std"]), 10, 800),
+                    np.clip(baseline["byt_mean"] + np.random.uniform(6, 10) * baseline["byt_std"], 0, None),
+                    np.clip(baseline["byt_mean"] + np.random.uniform(6, 10) * baseline["byt_std"], 0, None),
+                    np.clip(np.random.normal(baseline.get("disk_mean", 70), baseline.get("disk_std", 10)), 0, 100),
+                    np.clip(np.random.normal(baseline.get("disk_mean", 70), baseline.get("disk_std", 10)), 0, 100),
                 ])
             else:  # disk
+                # Disk I/O spike: 5-8 sigma above baseline
                 anomaly_data.append([
-                    np.random.uniform(5, 35),
-                    np.random.uniform(30, 65),
-                    np.random.randint(100, 180),
-                    np.random.uniform(1e6, 1e8),
-                    np.random.uniform(1e6, 1e8),
-                    np.random.uniform(1e8, 1e9),   # High disk I/O
-                    np.random.uniform(1e8, 1e9),
+                    np.clip(np.random.normal(baseline["cpu_mean"], baseline["cpu_std"]), 0, 100),
+                    np.clip(np.random.normal(baseline["mem_mean"], baseline["mem_std"]), 0, 100),
+                    np.clip(np.random.normal(baseline["prc_mean"], baseline["prc_std"]), 10, 800),
+                    np.clip(np.random.normal(baseline["byt_mean"], baseline["byt_std"]), 0, None),
+                    np.clip(np.random.normal(baseline["byt_mean"], baseline["byt_std"]), 0, None),
+                    np.clip(baseline.get("disk_mean", 70) + np.random.uniform(5, 8) * baseline.get("disk_std", 10), 0, 100),
+                    np.clip(baseline.get("disk_mean", 70) + np.random.uniform(5, 8) * baseline.get("disk_std", 10), 0, 100),
                 ])
         
         X = np.array(normal_data + anomaly_data)
@@ -388,3 +419,105 @@ def get_detector() -> AdvancedAnomalyDetector:
             _detector.train(verbose=False)
             print("✓ Models ready! This only happens once.")
     return _detector
+
+
+
+def classify_threat_from_metrics(metrics: dict, baseline: dict = None) -> dict:
+    """
+    Pure math threat classifier. No model needed.
+    Computes z-scores and names the attack type.
+    Called when ensemble doesn't return threat_info.
+    """
+    import json
+    from pathlib import Path
+    
+    if baseline is None:
+        # Load from file
+        for path in [Path("logs/baseline.json"),
+                     Path.home() / ".cybershield" / "baseline.json"]:
+            if path.exists():
+                with open(path) as f:
+                    baseline = json.load(f)
+                break
+        if baseline is None:
+            baseline = {
+                "cpu_mean": 25, "cpu_std": 10, "mem_mean": 92, "mem_std": 4,
+                "prc_mean": 200, "prc_std": 30, "pkt_mean": 500, "pkt_std": 300,
+                "byt_mean": 100000, "byt_std": 80000, "disk_mean": 70, "disk_std": 10,
+            }
+    
+    def z(val, mean, std):
+        return (float(val) - float(mean)) / max(float(std), 0.1)
+    
+    cpu = float(metrics.get("cpu_percent", 0))
+    mem = float(metrics.get("memory_percent", 0))
+    procs = float(metrics.get("process_count", 0))
+    pkts = float(metrics.get("net_packets_recv", 0))
+    byts = float(metrics.get("net_bytes_recv", 0))
+    disk = float(metrics.get("disk_percent", 0))
+    
+    cpu_z = z(cpu, baseline["cpu_mean"], baseline["cpu_std"])
+    mem_z = z(mem, baseline["mem_mean"], baseline["mem_std"])
+    prc_z = z(procs, baseline["prc_mean"], baseline["prc_std"])
+    pkt_z = z(pkts, baseline["pkt_mean"], baseline["pkt_std"])
+    byt_z = z(byts, baseline["byt_mean"], baseline["byt_std"])
+    dsk_z = z(disk, baseline.get("disk_mean", 70), baseline.get("disk_std", 10))
+    
+    # IGNORE network metrics for classification (too unreliable)
+    # Only use CPU, MEM, PROCS, DISK
+    max_z_core = max(abs(cpu_z), abs(mem_z), abs(prc_z), abs(dsk_z))
+    
+    # Classify based on CORE metrics only (not network)
+    # THRESHOLD: Only alert if deviation is > 3σ on core metrics
+    if max_z_core < 3.0:
+        # Normal operation - no threat
+        threat, label = "safe", "Normal Operation"
+    elif cpu_z > 4 and prc_z > 3:
+        threat, label = "combined_apt", "Combined APT — Multiple Vectors"
+    elif cpu_z > 5:
+        threat, label = "dos_cpu", "CPU Exhaustion / DoS Attack"
+    elif mem_z > 5:
+        threat, label = "mem_attack", "Memory Exhaustion / Ransomware Prep"
+    elif prc_z > 5:
+        threat, label = "fork_bomb", "Fork Bomb / Process Spawning"
+    elif dsk_z > 5:
+        threat, label = "disk_attack", "Disk Exhaustion / Ransomware I/O"
+    elif cpu_z > 3:
+        threat, label = "cpu_spike", "Elevated CPU / Possible Mining"
+    elif mem_z > 3:
+        threat, label = "mem_spike", "Memory Spike / Possible Leak"
+    elif prc_z > 3:
+        threat, label = "proc_spike", "Process Spike / Possible Malware"
+    else:
+        threat, label = "safe", "Normal Operation"
+    
+    # Use core metrics for severity (ignore network)
+    if max_z_core > 7:
+        severity = "CRITICAL"
+    elif max_z_core > 5:
+        severity = "HIGH"
+    elif max_z_core > 3:
+        severity = "MEDIUM"
+    else:
+        severity = "LOW"
+    
+    return {
+        "threat_type": threat,
+        "threat_label": label,
+        "severity": severity,
+        "payload": {
+            "cpu_actual": round(cpu, 1),
+            "cpu_baseline": round(baseline["cpu_mean"], 1),
+            "cpu_sigma": f"{cpu_z:+.2f}σ",
+            "mem_actual": round(mem, 1),
+            "mem_baseline": round(baseline["mem_mean"], 1),
+            "mem_sigma": f"{mem_z:+.2f}σ",
+            "procs_actual": int(procs),
+            "procs_baseline": int(baseline["prc_mean"]),
+            "procs_sigma": f"{prc_z:+.2f}σ",
+            "pkt_sigma": f"{pkt_z:+.2f}σ",
+            "byt_sigma": f"{byt_z:+.2f}σ",
+            "disk_sigma": f"{dsk_z:+.2f}σ",
+            "max_deviation": f"{max_z_core:.2f}σ",  # Core metrics only
+        }
+    }

@@ -1,2 +1,2 @@
 [console_scripts]
-cybershield = cybershield.cli:main
+cybershield = cybershield.cli:cli
