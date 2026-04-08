@@ -20,19 +20,19 @@ def main():
     print("\nThis will spike CPU to trigger detection.")
     print("Watch the monitor terminal for intrusion alert.\n")
     
-    duration = 30
+    duration = 45  # Increased from 30 to 45 seconds
     if len(sys.argv) > 1:
         try:
             duration = int(sys.argv[1])
         except:
-            duration = 30
+            duration = 45
     
     cores = multiprocessing.cpu_count()
     
     print(f"Starting CPU attack:")
     print(f"  Duration: {duration} seconds")
     print(f"  Cores: {cores}")
-    print(f"  Expected detection: ~15-20 seconds\n")
+    print(f"  Expected detection: ~10-15 seconds (3/4 warnings)\n")
     
     # Spawn CPU burners
     processes = []

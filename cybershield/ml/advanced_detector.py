@@ -468,25 +468,29 @@ def classify_threat_from_metrics(metrics: dict, baseline: dict = None) -> dict:
     max_z_core = max(abs(cpu_z), abs(mem_z), abs(prc_z), abs(dsk_z))
     
     # Classify based on CORE metrics only (not network)
-    # THRESHOLD: Only alert if deviation is > 3σ on core metrics
-    if max_z_core < 3.0:
+    # THRESHOLD: Alert if deviation is > 1.5σ on core metrics (lowered for better detection)
+    # ALSO: If CPU > 85%, always flag as attack regardless of baseline
+    if cpu > 85:
+        # Extreme CPU - always flag
+        threat, label = "dos_cpu", "CPU Exhaustion / DoS Attack"
+    elif max_z_core < 1.5:
         # Normal operation - no threat
         threat, label = "safe", "Normal Operation"
-    elif cpu_z > 4 and prc_z > 3:
+    elif cpu_z > 3 and prc_z > 2:
         threat, label = "combined_apt", "Combined APT — Multiple Vectors"
-    elif cpu_z > 5:
+    elif cpu_z > 4:
         threat, label = "dos_cpu", "CPU Exhaustion / DoS Attack"
-    elif mem_z > 5:
+    elif mem_z > 4:
         threat, label = "mem_attack", "Memory Exhaustion / Ransomware Prep"
-    elif prc_z > 5:
+    elif prc_z > 4:
         threat, label = "fork_bomb", "Fork Bomb / Process Spawning"
-    elif dsk_z > 5:
+    elif dsk_z > 4:
         threat, label = "disk_attack", "Disk Exhaustion / Ransomware I/O"
-    elif cpu_z > 3:
+    elif cpu_z > 2:
         threat, label = "cpu_spike", "Elevated CPU / Possible Mining"
-    elif mem_z > 3:
+    elif mem_z > 2:
         threat, label = "mem_spike", "Memory Spike / Possible Leak"
-    elif prc_z > 3:
+    elif prc_z > 2:
         threat, label = "proc_spike", "Process Spike / Possible Malware"
     else:
         threat, label = "safe", "Normal Operation"

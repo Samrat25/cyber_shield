@@ -49,7 +49,6 @@ def _register_commands():
     from .commands.node import node
     from .commands.network import network
     from .commands.ml import ml
-    from .commands.attack import attack
     from .commands.status import status
     from .commands.dashboard import dashboard
     from .commands.api import api
@@ -57,7 +56,6 @@ def _register_commands():
     main.add_command(node)
     main.add_command(network)
     main.add_command(ml)
-    main.add_command(attack)
     main.add_command(status)
     main.add_command(dashboard)
     main.add_command(api)
@@ -76,18 +74,18 @@ def quickstart():
     """Quick setup guide for new users."""
     console.print(Panel(
         "[bold cyan]CyberShield Quick Start Guide[/bold cyan]\n\n"
-        "[yellow]Step 1:[/yellow] Configure your environment\n"
+        "[yellow]Step 1:[/yellow] Initialize node\n"
         "  $ cybershield node init\n\n"
-        "[yellow]Step 2:[/yellow] Train ML models\n"
-        "  $ cybershield ml train --advanced\n\n"
-        "[yellow]Step 3:[/yellow] Register on blockchain\n"
+        "[yellow]Step 2:[/yellow] Register on blockchain\n"
         "  $ cybershield node register\n\n"
-        "[yellow]Step 4:[/yellow] Start monitoring\n"
+        "[yellow]Step 3:[/yellow] Start monitoring\n"
         "  $ cybershield node monitor\n\n"
-        "[yellow]Step 5:[/yellow] (Optional) Connect to network\n"
-        "  $ cybershield network connect <peer-address>\n\n"
-        "[green]For testing:[/green]\n"
-        "  $ cybershield attack simulate --type cpu\n",
+        "[yellow]Step 4:[/yellow] View dashboard\n"
+        "  $ cybershield dashboard\n\n"
+        "[yellow]Step 5:[/yellow] (Optional) Start P2P listener\n"
+        "  $ cybershield network listen\n\n"
+        "[green]For attack testing:[/green]\n"
+        "  Use Kali Linux VM with real attack tools (nmap, hping3, stress)\n",
         border_style="cyan",
         expand=False
     ))

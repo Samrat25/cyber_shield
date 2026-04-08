@@ -24,9 +24,9 @@ class ObservationWindow:
     Watches 20 seconds of readings before declaring an anomaly.
     Prevents false positives from momentary spikes.
     """
-    def __init__(self, window_seconds=20, check_interval=5, threshold_ratio=0.75):
+    def __init__(self, window_seconds=20, check_interval=5, threshold_ratio=0.66):
         self.max_readings = window_seconds // check_interval  # = 4
-        self.threshold = threshold_ratio  # 75% must be anomaly (3 out of 4)
+        self.threshold = threshold_ratio  # 66% must be anomaly (2.64 out of 4, rounds to 3)
         self.readings = []
     
     def add(self, verdict, confidence, threat_info, metrics):
@@ -42,10 +42,11 @@ class ObservationWindow:
     
     def should_alert(self):
         """Returns True only when enough readings in the window are anomalous."""
-        if len(self.readings) < 3:  # Need at least 3 readings (15 seconds)
+        if len(self.readings) < 2:  # Need at least 2 readings (10 seconds)
             return False
         anomaly_count = sum(1 for r in self.readings if r["verdict"] == "anomaly")
         ratio = anomaly_count / len(self.readings)
+        # Alert if 66% or more are anomalous (e.g., 2/3, 3/4)
         return ratio >= self.threshold
     
     def dominant_threat(self):
@@ -237,7 +238,7 @@ async def _monitor_async(node_id, state, enable_p2p, port):
     """Async monitoring loop with observation window and payload analysis."""
     # LAZY IMPORTS
     from ..core.monitor import SystemMonitor
-    from ..ml import get_detector
+    from ..ml.custom_detector import get_custom_detector  # Use custom model
     from ..ml.advanced_detector import classify_threat_from_metrics
     from ..blockchain.aptos import AptosClient
     from ..storage.ipfs import IPFSClient
@@ -247,8 +248,8 @@ async def _monitor_async(node_id, state, enable_p2p, port):
     
     console.print(Panel(
         f"[bold cyan]CyberShield Monitoring - Node: {node_id}[/bold cyan]\n"
-        f"ML ensemble active | Blockchain logging enabled\n"
-        f"Observation window: 20 seconds | Rate-limit detection\n"
+        f"Custom ML model active | Blockchain logging enabled\n"
+        f"Observation window: 20s (66% threshold = 3/4 warnings) | Extreme CPU override\n"
         f"P2P: {'[green]Enabled[/green]' if enable_p2p else '[dim]Disabled[/dim]'}\n"
         f"Press Ctrl+C to stop",
         expand=False
@@ -256,10 +257,10 @@ async def _monitor_async(node_id, state, enable_p2p, port):
     
     # Initialize
     monitor = SystemMonitor()
-    detector = get_detector()
+    detector = get_custom_detector()  # Use your trained model
     ipfs_client = IPFSClient()
     aptos_client = AptosClient()
-    obs = ObservationWindow(window_seconds=20, check_interval=5, threshold_ratio=0.75)
+    obs = ObservationWindow(window_seconds=20, check_interval=5, threshold_ratio=0.66)
     
     # P2P
     p2p_node = None
@@ -289,8 +290,14 @@ async def _monitor_async(node_id, state, enable_p2p, port):
             # Classify threat
             threat_info = classify_threat_from_metrics(metrics) if verdict == "anomaly" else {}
             
-            # OVERRIDE: If threat classifier says "safe", force verdict to safe
-            if threat_info.get("threat_type") == "safe":
+            # CRITICAL FIX: If threat classifier detects a real threat, override ML verdict
+            if threat_info.get("threat_type") not in ["safe", None, ""]:
+                # Threat classifier found something - trust it
+                verdict = "anomaly"
+                if confidence < 0.6:
+                    confidence = 0.75  # Boost confidence
+            elif threat_info.get("threat_type") == "safe":
+                # Threat classifier says safe - override to safe
                 verdict = "safe"
                 confidence = 0.5
             
