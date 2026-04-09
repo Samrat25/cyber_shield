@@ -97,12 +97,20 @@ def api_p2p():
     import json
     from pathlib import Path
     
-    # Your node
-    state   = {}
-    sf      = Path("logs/node_state.json")
-    if sf.exists():
-        try: state = json.loads(sf.read_text())
-        except: pass
+    # Use correct log paths - check both workspace and user home
+    workspace_logs = Path("logs")
+    user_logs = Path.home() / ".cybershield" / "logs"
+    
+    # Your node - try both locations
+    state = {}
+    for logs_dir in [workspace_logs, user_logs]:
+        sf = logs_dir / "node_state.json"
+        if sf.exists():
+            try:
+                state = json.loads(sf.read_text())
+                break
+            except:
+                pass
     
     node1_id     = state.get("node_id", "SAMRAT")
     node1_ip     = state.get("ip", "192.168.29.58")
@@ -118,13 +126,16 @@ def api_p2p():
         "mem"   : None,
     }]
     
-    # Real peers from WebSocket connections
-    pf = Path("logs/peers.json")
+    # Real peers from WebSocket connections - try both locations
     real_peers = []
-    if pf.exists():
-        try:
-            real_peers = list(json.loads(pf.read_text()).values())
-        except: pass
+    for logs_dir in [workspace_logs, user_logs]:
+        pf = logs_dir / "peers.json"
+        if pf.exists():
+            try:
+                real_peers = list(json.loads(pf.read_text()).values())
+                break
+            except:
+                pass
     
     for p in real_peers:
         nodes.append({

@@ -220,8 +220,9 @@ def register(force):
 
 @node.command()
 @click.option('--p2p/--no-p2p', default=False, help='Enable P2P networking')
-@click.option('--port', default=8765, help='P2P port')
-def monitor(p2p, port):
+@click.option('--port', default=8766, help='P2P port (default: 8766, use different from network listen)')
+@click.option('--connect', default=None, help='Connect to peer address (e.g., 192.168.1.100:8765)')
+def monitor(p2p, port, connect):
     """Start real-time monitoring with ML detection."""
     state_file = LOGS_DIR / "node_state.json"
     if not state_file.exists():
@@ -231,10 +232,10 @@ def monitor(p2p, port):
     state = json.loads(state_file.read_text())
     node_id = state['node_id']
     
-    asyncio.run(_monitor_async(node_id, state, p2p, port))
+    asyncio.run(_monitor_async(node_id, state, p2p, port, connect))
 
 
-async def _monitor_async(node_id, state, enable_p2p, port):
+async def _monitor_async(node_id, state, enable_p2p, port, peer_address):
     """Async monitoring loop with observation window and payload analysis."""
     # LAZY IMPORTS
     from ..core.monitor import SystemMonitor
@@ -246,11 +247,18 @@ async def _monitor_async(node_id, state, enable_p2p, port):
     from ..core.db import log_event, upsert_node
     from ..zk_proof import generate_proof
     
+    p2p_status = "Disabled"
+    if enable_p2p:
+        if peer_address:
+            p2p_status = f"[green]Client mode[/green] → connecting to {peer_address}"
+        else:
+            p2p_status = f"[green]Server mode[/green] on port {port}"
+    
     console.print(Panel(
         f"[bold cyan]CyberShield Monitoring - Node: {node_id}[/bold cyan]\n"
         f"Custom ML model active | Blockchain logging enabled\n"
         f"Observation window: 20s (66% threshold = 3/4 warnings) | Extreme CPU override\n"
-        f"P2P: {'[green]Enabled[/green]' if enable_p2p else '[dim]Disabled[/dim]'}\n"
+        f"P2P: {p2p_status}\n"
         f"Press Ctrl+C to stop",
         expand=False
     ))
@@ -266,14 +274,44 @@ async def _monitor_async(node_id, state, enable_p2p, port):
     p2p_node = None
     if enable_p2p:
         p2p_node = P2PNode(node_id=node_id, port=port)
-        await p2p_node.start()
         
-        async def handle_threat_alert(peer_id, data):
-            console.print(f"\n[red]⚠ Threat alert from {peer_id}:[/red]")
-            console.print(f"  CID: {data.get('cid')}")
-            console.print(f"  TX: {data.get('tx_hash')}\n")
+        # If peer address provided, act as client
+        if peer_address:
+            console.print(f"[yellow]Connecting to peer {peer_address}...[/yellow]")
+            # Don't start server, just connect as client
+            try:
+                import websockets
+                # Simple client connection without starting server
+                p2p_node.running = True
+                success = await p2p_node.connect_to_peer(peer_address)
+                if success:
+                    console.print(f"[green]✓ Connected to peer network[/green]\n")
+                else:
+                    console.print(f"[yellow]⚠ Could not connect to peer, continuing without P2P[/yellow]\n")
+                    p2p_node = None
+            except Exception as e:
+                console.print(f"[yellow]⚠ P2P connection failed: {e}[/yellow]\n")
+                p2p_node = None
+        else:
+            # Start as server
+            try:
+                await p2p_node.start()
+                console.print(f"[green]✓ P2P server started on port {port}[/green]\n")
+            except OSError as e:
+                if "10048" in str(e) or "address already in use" in str(e).lower():
+                    console.print(f"[yellow]⚠ Port {port} already in use. Use --port to specify different port.[/yellow]")
+                    console.print(f"[yellow]  Or stop 'cybershield network listen' if running.[/yellow]\n")
+                    p2p_node = None
+                else:
+                    raise
         
-        p2p_node.register_handler('threat_alert', handle_threat_alert)
+        if p2p_node:
+            async def handle_threat_alert(peer_id, data):
+                console.print(f"\n[red]⚠ Threat alert from {peer_id}:[/red]")
+                console.print(f"  CID: {data.get('cid')}")
+                console.print(f"  TX: {data.get('tx_hash')}\n")
+            
+            p2p_node.register_handler('threat_alert', handle_threat_alert)
     
     check_count = 0
     state_file = LOGS_DIR / "node_state.json"

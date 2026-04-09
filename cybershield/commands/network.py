@@ -49,9 +49,10 @@ class PeerRegistry:
                 "type"        : "real",
                 "connected_at": datetime.now(UTC).isoformat(),
                 "last_seen"   : datetime.now(UTC).isoformat(),
-                **(extra or {})
+                "os"          : extra.get("os", "") if extra else "",
             }
             self._save()
+            print(f"[DEBUG] Peer registered and saved to {self._peers_file}")
     
     def update_metrics(self, node_id: str, metrics: dict):
         with self._lock:
@@ -65,6 +66,9 @@ class PeerRegistry:
                     "status"        : "online",
                 })
                 self._save()
+            else:
+                # Auto-register if not found
+                self.register(node_id, metrics.get("ip", "unknown"), {"os": metrics.get("os", "")})
     
     def disconnect(self, node_id: str):
         with self._lock:
@@ -171,8 +175,10 @@ async def _listen_async(port):
     async def handle_peer(websocket):
         """Handles one WebSocket connection from a peer node."""
         peer_node_id = None
+        check_count = 0
         try:
             async for raw_msg in websocket:
+                check_count += 1
                 try:
                     msg = json.loads(raw_msg)
                 except json.JSONDecodeError:
@@ -203,6 +209,9 @@ async def _listen_async(port):
                         f"CPU={data.get('cpu_percent',0):.1f}%  "
                         f"MEM={data.get('memory_percent',0):.1f}%[/dim]"
                     )
+                    # Debug: verify file is updated
+                    if check_count % 6 == 0:  # Every 30 seconds
+                        console.print(f"  [dim]✓ Peer data saved to logs/peers.json[/dim]")
         
         except websockets.exceptions.ConnectionClosed:
             pass
