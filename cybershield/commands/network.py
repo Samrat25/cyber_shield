@@ -96,14 +96,19 @@ def network():
 
 @network.command()
 @click.argument('peer_address')
-@click.option('--port', default=P2P_PORT, help='Local P2P port')
-def connect(peer_address, port):
-    """Connect to a peer node."""
-    asyncio.run(_connect_async(peer_address, port))
+def connect(peer_address):
+    """
+    Connect to a peer node as a client (no server).
+    
+    Note: This command is rarely used directly. 
+    For Kali peer connections, use: python3 kali_peer.py --server <IP>:PORT
+    For monitoring with P2P, use: cybershield node monitor --p2p --connect <IP>:PORT
+    """
+    asyncio.run(_connect_async(peer_address))
 
 
-async def _connect_async(peer_address, port):
-    """Async peer connection."""
+async def _connect_async(peer_address):
+    """Async peer connection as pure client (no server)."""
     # Load node config
     from ..config import CONFIG_DIR
     config_file = CONFIG_DIR / "node_config.json"
@@ -115,16 +120,23 @@ async def _connect_async(peer_address, port):
     config = json.loads(config_file.read_text())
     node_id = config['node_id']
     
+    # Validate peer address format
+    if ':' not in peer_address:
+        console.print("[red]✗ Invalid peer address format.[/red]")
+        console.print("[yellow]Expected format: IP:PORT (e.g., 192.168.1.50:8765)[/yellow]\n")
+        return
+    
     console.print(Panel(f"[bold cyan]Connecting to Peer Network[/bold cyan]", expand=False))
     console.print(f"\n  Your Node: [cyan]{node_id}[/cyan]")
     console.print(f"  Peer: [cyan]{peer_address}[/cyan]\n")
     
-    # Start P2P node
-    p2p_node = P2PNode(node_id=node_id, port=port)
-    await p2p_node.start()
+    # Create P2P node but don't start server (client-only mode)
+    p2p_node = P2PNode(node_id=node_id, port=0)  # Port 0 = don't bind
+    p2p_node.running = True  # Mark as running without starting server
     
     # Connect to peer
-    success = await p2p_node.connect_to_peer(peer_address)
+    console.print("[yellow]Connecting...[/yellow]")
+    success = await p2p_node.connect_to_peer(f"ws://{peer_address}")
     
     if success:
         console.print(f"\n[green]✓ Connected successfully![/green]")
@@ -139,8 +151,18 @@ async def _connect_async(peer_address, port):
             console.print("\n[yellow]Disconnecting...[/yellow]")
     else:
         console.print(f"\n[red]✗ Connection failed[/red]\n")
+        console.print("[yellow]Troubleshooting:[/yellow]")
+        console.print("  1. Ensure peer server is running")
+        console.print("  2. Check IP address and port are correct")
+        console.print("  3. Verify firewall allows connection")
+        console.print(f"  4. Test with: telnet {peer_address.split(':')[0]} {peer_address.split(':')[1]}\n")
     
-    await p2p_node.stop()
+    # Close connections
+    for peer_id, ws in list(p2p_node.peers.items()):
+        try:
+            await ws.close()
+        except:
+            pass
 
 
 @network.command()
