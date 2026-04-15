@@ -42,426 +42,388 @@ Dynamic: requires-dist
 Dynamic: requires-python
 Dynamic: summary
 
-# 🛡️ CyberShield
+# 🛡️ CyberShield - Blockchain-Based Intrusion Detection System
 
-**Production-Ready Blockchain-Based Distributed Intrusion Detection System**
+A decentralized, AI-powered intrusion detection system that combines machine learning, blockchain technology, and P2P networking for real-time threat detection and verification.
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Aptos](https://img.shields.io/badge/Blockchain-Aptos-green.svg)](https://aptoslabs.com/)
-[![Status](https://img.shields.io/badge/Status-Production--Ready-success.svg)]()
+## 🌟 Features
 
----
+- **🤖 Custom ML Detection**: RandomForest model trained on your system's baseline
+- **⛓️ Blockchain Logging**: Immutable threat records on Aptos blockchain
+- **📦 IPFS Storage**: Decentralized evidence storage via Pinata
+- **🌐 P2P Network**: Distributed threat intelligence sharing
+- **🔐 Zero-Knowledge Proofs**: Privacy-preserving verification
+- **📊 Real-Time Dashboard**: Live monitoring with network topology visualization
+- **⚡ Extreme CPU Override**: Guaranteed detection at 85%+ CPU usage
+- **🎯 Observation Window**: 20-second analysis prevents false positives
 
-## 🌟 What is CyberShield?
-
-CyberShield is a next-generation intrusion detection system that combines **advanced machine learning**, **blockchain verification**, and **peer-to-peer networking** to create an immutable, distributed security platform.
-
-### The Problem
-Traditional IDS systems have critical flaws:
-- ❌ **Centralized** - Single point of failure
-- ❌ **Mutable** - Evidence can be deleted or modified
-- ❌ **Isolated** - No secure threat intelligence sharing
-- ❌ **Basic Detection** - Simple rule-based or single-model ML
-
-### The Solution
-CyberShield addresses all of these:
-- ✅ **Distributed** - P2P architecture, no central server
-- ✅ **Immutable** - Blockchain-verified evidence
-- ✅ **Connected** - Real-time threat intelligence sharing
-- ✅ **Advanced** - 4-model ML ensemble
-
----
-
-## 🚀 Quick Start
-
-```bash
-# Install
-pip install cybershield
-
-# Initialize
-cybershield node init
-
-# Train ML models
-cybershield ml train --advanced
-
-# Register on blockchain
-cybershield node register
-
-# Start monitoring
-cybershield node monitor --p2p
-
-# Test (in another terminal)
-cybershield attack simulate --type cpu
-```
-
----
-
-## ✨ Key Features
-
-### 1. Advanced ML Ensemble 🤖
-
-Four models working together for robust detection:
-
-| Model | Type | Purpose |
-|-------|------|---------|
-| **Isolation Forest** | Unsupervised | Fast anomaly detection |
-| **Autoencoder** | Deep Learning | Subtle pattern recognition |
-| **LSTM** | Recurrent NN | Temporal attack patterns |
-| **XGBoost** | Gradient Boosting | High-accuracy classification |
-
-**Ensemble Voting**: All models vote on threats, reducing false positives to <5%.
-
-### 2. Real P2P Networking 🌐
-
-- WebSocket-based peer connections
-- Automatic peer discovery
-- Real-time threat broadcasting
-- No central server required
-- Scalable to 100+ nodes
-
-### 3. Blockchain Integration ⛓️
-
-- Smart contract on Aptos testnet
-- Immutable threat logging
-- Public verification via explorer
-- Cryptographic proof of detection
-- Compliance-ready audit trail
-
-### 4. IPFS Storage 📦
-
-- Permanent evidence storage
-- Content-addressed (CID)
-- Tamper-proof records
-- Distributed storage
-- Gateway access for verification
-
-### 5. Production-Ready CLI 💻
-
-- Professional interface with Rich UI
-- Modular command structure
-- Pip installable package
-- Comprehensive help system
-- Configuration management
-
----
-
-## 📊 Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     CyberShield Node                        │
+│                    CyberShield System                        │
 ├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│  │   System     │  │   ML         │  │   P2P        │    │
-│  │   Monitor    │─▶│   Ensemble   │─▶│   Network    │    │
-│  └──────────────┘  └──────────────┘  └──────────────┘    │
-│         │                  │                  │            │
-│         ▼                  ▼                  ▼            │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│  │   Metrics    │  │   Detection  │  │   Broadcast  │    │
-│  │   Collection │  │   Engine     │  │   Alerts     │    │
-│  └──────────────┘  └──────────────┘  └──────────────┘    │
-│                           │                                │
-│                           ▼                                │
-│                  ┌─────────────────┐                       │
-│                  │  Threat Found?  │                       │
-│                  └─────────────────┘                       │
-│                           │                                │
-│                    ┌──────┴──────┐                        │
-│                    ▼             ▼                         │
-│            ┌──────────────┐  ┌──────────────┐            │
-│            │   IPFS       │  │  Blockchain  │            │
-│            │   Storage    │  │  Logging     │            │
-│            └──────────────┘  └──────────────┘            │
-│                    │             │                         │
-│                    └──────┬──────┘                        │
-│                           ▼                                │
-│                  ┌─────────────────┐                       │
-│                  │  Evidence Chain │                       │
-│                  │  CID + TX Hash  │                       │
-│                  └─────────────────┘                       │
+│                                                              │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐ │
+│  │   Monitor    │───▶│  ML Detector │───▶│   Threat     │ │
+│  │   (psutil)   │    │ (Custom RF)  │    │  Classifier  │ │
+│  └──────────────┘    └──────────────┘    └──────────────┘ │
+│         │                    │                    │         │
+│         └────────────────────┴────────────────────┘         │
+│                              │                               │
+│                              ▼                               │
+│                    ┌──────────────────┐                     │
+│                    │ Observation      │                     │
+│                    │ Window (20s)     │                     │
+│                    │ 66% threshold    │                     │
+│                    └──────────────────┘                     │
+│                              │                               │
+│              ┌───────────────┴───────────────┐              │
+│              ▼                               ▼              │
+│     ┌─────────────────┐            ┌─────────────────┐     │
+│     │  IPFS Storage   │            │ Aptos Blockchain│     │
+│     │  (Pinata)       │            │  (Testnet)      │     │
+│     └─────────────────┘            └─────────────────┘     │
+│              │                               │              │
+│              └───────────────┬───────────────┘              │
+│                              ▼                               │
+│                    ┌──────────────────┐                     │
+│                    │   Dashboard      │                     │
+│                    │   (Flask)        │                     │
+│                    └──────────────────┘                     │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              P2P Network (WebSocket)                  │  │
+│  │  Windows Node ◄──────────────────────► Kali Peer    │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+## 📋 Prerequisites
 
-## 📖 Usage
+### Windows Machine (Primary Node)
+- Python 3.8+
+- 8GB+ RAM
+- Internet connection (for blockchain/IPFS)
+- Windows 10/11
 
-### Node Management
+### Kali Linux (Optional Peer)
+- Python 3.8+
+- Network connectivity to Windows machine
+- `stress-ng` for attack simulation
 
-```bash
-# Initialize node
-cybershield node init
+## 🚀 Quick Start
 
-# Register on blockchain
-cybershield node register
-
-# Start monitoring
-cybershield node monitor
-
-# Monitor with P2P enabled
-cybershield node monitor --p2p
-```
-
-### ML Management
+### 1. Installation
 
 ```bash
-# Train basic models
-cybershield ml train
+# Clone repository
+cd cyber_shield
 
-# Train advanced ensemble
-cybershield ml train --advanced
+# Create virtual environment
+python -m venv venv
 
-# Show model information
-cybershield ml info
+# Activate virtual environment
+# Windows:
+.\venv\Scripts\activate
 
-# Test detection
-cybershield ml test
-```
+# Install dependencies
+pip install -r requirements.txt
 
-### Network Management
-
-```bash
-# Start P2P server
-cybershield network listen --port 8765
-
-# Connect to peer
-cybershield network connect <peer-ip>:8765
-
-# Show connected peers
-cybershield network peers
-```
-
-### Attack Simulation
-
-```bash
-# CPU attack
-cybershield attack simulate --type cpu --intensity 8
-
-# Memory attack
-cybershield attack simulate --type memory
-
-# Network attack
-cybershield attack simulate --type network
-
-# Combined attack (APT-style)
-cybershield attack simulate --type combined --duration 30
-
-# Show detectable patterns
-cybershield attack patterns
-```
-
-### Status & Info
-
-```bash
-# Show node status
-cybershield status
-
-# Show version
-cybershield version
-
-# Quick start guide
-cybershield quickstart
-
-# Full help
-cybershield --help
-```
-
----
-
-## 🔍 Detection Capabilities
-
-CyberShield can detect:
-
-- **CPU Attacks**: Cryptomining, DoS, resource exhaustion
-- **Memory Attacks**: Memory bombs, leaks, buffer overflows
-- **Network Attacks**: DDoS, data exfiltration, port scanning
-- **Process Attacks**: Fork bombs, malware spawning
-- **Disk Attacks**: Ransomware, data theft, excessive I/O
-- **Combined Attacks**: Advanced persistent threats (APTs)
-
----
-
-## 📊 Performance
-
-- **Detection Latency**: < 5 seconds
-- **False Positive Rate**: < 5% (with ensemble)
-- **Throughput**: 1000+ metrics/second
-- **Scalability**: Tested with 50+ nodes
-- **Blockchain Confirmation**: ~2-3 seconds (Aptos)
-- **IPFS Pinning**: ~1-2 seconds
-- **P2P Message Latency**: < 100ms
-
----
-
-## 🛠️ Installation
-
-### Prerequisites
-
-- Python 3.8 or higher
-- pip package manager
-- Aptos CLI (for blockchain deployment)
-- 4GB RAM minimum
-
-### Quick Install
-
-```bash
-pip install cybershield
-```
-
-### From Source
-
-```bash
-git clone https://github.com/yourusername/cybershield.git
-cd cybershield
+# Install package
 pip install -e .
 ```
 
-### Configuration
+### 2. Configuration
 
-Create `.env` file:
+Create `.env` file in project root:
 
-```bash
-# Blockchain
+```env
+# Aptos Blockchain
 APTOS_NETWORK=testnet
 APTOS_NODE_URL=https://fullnode.testnet.aptoslabs.com/v1
-APTOS_PRIVATE_KEY=0x...
-APTOS_ADDRESS=0x...
+APTOS_PRIVATE_KEY=your_private_key_here
+APTOS_ADDRESS=your_address_here
 
-# IPFS
-PINATA_JWT=eyJ...
+# IPFS (Pinata)
+PINATA_JWT=your_pinata_jwt_here
 
-# P2P (Optional)
+# P2P Network
 P2P_PORT=8765
 P2P_HOST=0.0.0.0
+
+# ML Configuration
+ML_CHECK_INTERVAL=5
+ML_ENSEMBLE_THRESHOLD=0.6
 ```
 
-See [INSTALL.md](INSTALL.md) for detailed instructions.
-
----
-
-## 🎬 Demo
-
-### Quick Demo (2 minutes)
+### 3. Initialize Node
 
 ```bash
-# Terminal 1: Monitor
-cybershield node monitor
+# Initialize node configuration
+cybershield node init
 
-# Terminal 2: Attack
-cybershield attack simulate --type cpu --intensity 8
-
-# Watch the detection happen in real-time!
+# Register on blockchain and IPFS
+cybershield node register
 ```
 
-### Full Demo (10 minutes)
+### 4. Start Monitoring
 
-See [DEMO_SCRIPT.md](DEMO_SCRIPT.md) for complete hackathon demo guide.
+```bash
+# Basic monitoring (no P2P)
+cybershield node monitor
 
----
+# With P2P networking
+cybershield node monitor --p2p --port 8766
+```
+
+### 5. Launch Dashboard
+
+```bash
+# In a new terminal
+cybershield dashboard
+
+# Open browser to displayed URL
+# Example: http://localhost:5000?key=abc123
+```
 
 ## 📚 Documentation
 
-- **[START_HERE.md](START_HERE.md)** - Quick start guide
-- **[INSTALL.md](INSTALL.md)** - Detailed installation
-- **[DEMO_SCRIPT.md](DEMO_SCRIPT.md)** - Live demo guide
-- **[HACKATHON_DEMO.md](HACKATHON_DEMO.md)** - Winning strategy
-- **[FINAL_SUMMARY.md](FINAL_SUMMARY.md)** - Complete overview
+- **[CLI_GUIDE.md](CLI_GUIDE.md)** - Complete CLI command reference
+- **[NETWORK_ATTACK_GUIDE.md](NETWORK_ATTACK_GUIDE.md)** - P2P setup and attack testing
 
----
+## 🎯 Key Components
 
-## 🏆 Why CyberShield Wins
+### Custom ML Model
+- **Type**: RandomForestClassifier
+- **Features**: 8 rolling statistics (value, mean, std, zscore, delta, delta_pct, max, max_ratio)
+- **Window**: 10 samples
+- **Threshold**: 0.45 (lowered for sensitivity)
+- **Override**: CPU >90% always flagged as anomaly
 
-### Technical Excellence
-- ✅ Production-ready code
-- ✅ Advanced ML ensemble (not basic)
-- ✅ Real P2P networking (not mocked)
-- ✅ Blockchain integration (verifiable)
-- ✅ Complete system (not just components)
+### Threat Classifier
+- **Method**: Statistical z-score analysis
+- **Baseline**: Your machine's normal operation
+- **Threshold**: 1.5σ for core metrics (CPU, MEM, PROCS, DISK)
+- **Absolute**: CPU >85% always triggers alert
+- **Ignores**: Network metrics (too unreliable)
 
-### Innovation
-- ✅ First to properly combine ML + Blockchain + P2P
-- ✅ 4-model ensemble vs. single model
-- ✅ Immutable evidence chain
-- ✅ Distributed threat intelligence
+### Observation Window
+- **Duration**: 20 seconds (4 readings at 5s intervals)
+- **Threshold**: 66% anomalous (3/4 or 2/3 readings)
+- **Purpose**: Prevents false positives from momentary spikes
+- **Action**: Fires intrusion alert when threshold met
 
-### Business Value
-- ✅ Solves real security problems
-- ✅ Compliance-ready (immutable audit trail)
-- ✅ Scalable architecture
-- ✅ Open source and extensible
+### Detection Flow
+```
+1. Collect metrics (CPU, MEM, PROCS, DISK)
+2. ML model predicts (safe/anomaly)
+3. Threat classifier analyzes z-scores
+4. Extreme CPU override (>90%)
+5. Hybrid verdict (ML + classifier + absolute)
+6. Add to observation window
+7. Check if 66% of window is anomalous
+8. Fire alert if threshold met
+9. Log to IPFS + blockchain
+10. Broadcast to P2P network
+```
 
----
+## 🔧 System Requirements
+
+### Minimum
+- CPU: 2 cores
+- RAM: 4GB
+- Disk: 1GB free space
+- Network: Broadband internet
+
+### Recommended
+- CPU: 4+ cores
+- RAM: 8GB+
+- Disk: 5GB+ free space
+- Network: Stable broadband with low latency
+
+## 📊 Dashboard Features
+
+### Real-Time Metrics
+- CPU usage over time
+- Memory usage over time
+- Anomaly risk percentage (0-100%)
+- Color-coded risk indicator (green/orange/red)
+
+### Network Topology
+- Visual P2P network diagram
+- Node status (online/compromised/offline)
+- Real-time peer metrics
+- Connection status
+- Attack visualization
+
+### Event Log
+- Blockchain-verified events
+- IPFS CID links
+- Aptos transaction hashes
+- Threat details and severity
+- Timestamp and confidence scores
+
+### Statistics
+- Total checks performed
+- Threats detected
+- Safe rate percentage
+- Active nodes count
+
+## 🛠️ Troubleshooting
+
+### Port Already in Use
+```bash
+# Use different port
+cybershield network listen --port 8766
+```
+
+### IPFS/Blockchain Offline
+- System continues working with offline CIDs
+- Evidence logged locally
+- Will sync when connection restored
+
+### False Positives
+- System uses 20-second observation window
+- Requires 66% of readings to be anomalous
+- Momentary spikes ignored
+
+### No Peer Connections
+```bash
+# Check Windows firewall
+netsh advfirewall firewall add rule name="CyberShield" dir=in action=allow protocol=TCP localport=8765
+
+# Verify Windows IP
+ipconfig
+
+# Test connection from Kali
+telnet <WINDOWS_IP> 8765
+```
+
+## 🔐 Security Features
+
+### Zero-Knowledge Proofs
+- SHA-256 commitment of metrics
+- Proof generation without revealing raw data
+- Verifiable without exposing sensitive information
+
+### Blockchain Immutability
+- All threats logged on Aptos testnet
+- Tamper-proof evidence trail
+- Public verification via explorer
+
+### IPFS Decentralization
+- Evidence stored on distributed network
+- Content-addressed (CID)
+- Permanent and censorship-resistant
+
+### P2P Encryption
+- WebSocket connections
+- Node authentication
+- Threat alert broadcasting
+
+## 📈 Performance
+
+### Detection Speed
+- Monitoring interval: 5 seconds
+- ML inference: <100ms
+- Alert generation: 10-15 seconds (observation window)
+- Dashboard update: 5 seconds
+
+### Resource Usage
+- CPU: 2-5% (idle monitoring)
+- Memory: 100-200MB
+- Disk: Minimal (logs only)
+- Network: <1KB/s (heartbeats)
+
+## 🧪 Testing
+
+### Local Attack Test
+```bash
+# Windows - CPU attack (45 seconds)
+python windows_cpu_attack.py
+
+# Expected: Intrusion alert after 10-15 seconds
+```
+
+### Kali Attack Test
+```bash
+# Kali - CPU stress test
+stress-ng --cpu 4 --timeout 45s
+
+# Expected: Kali metrics spike on dashboard
+```
+
+## 📝 Project Structure
+
+```
+cyber_shield/
+├── cybershield/              # Main package
+│   ├── blockchain/           # Aptos integration
+│   ├── commands/             # CLI commands
+│   ├── core/                 # Core monitoring
+│   ├── ml/                   # ML models
+│   │   ├── model/            # Trained models
+│   │   ├── custom_detector.py
+│   │   └── advanced_detector.py
+│   ├── network/              # P2P networking
+│   ├── storage/              # IPFS integration
+│   └── cli.py                # CLI entry point
+├── dashboard/                # Web dashboard
+│   ├── index.html
+│   └── server.py
+├── logs/                     # Local logs
+├── contract/                 # Move smart contracts
+├── kali_peer.py              # Kali peer script
+├── windows_cpu_attack.py     # Attack simulator
+├── requirements.txt          # Dependencies
+└── setup.py                  # Package setup
+```
 
 ## 🤝 Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-```bash
-git clone https://github.com/yourusername/cybershield.git
-cd cybershield
-pip install -e ".[dev]"
-pytest
-```
-
----
+This is a demo/research project. For production use:
+1. Use mainnet instead of testnet
+2. Implement proper key management
+3. Add authentication/authorization
+4. Enhance ML model with more training data
+5. Add more attack detection patterns
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
----
+MIT License - See LICENSE file for details
 
 ## 🙏 Acknowledgments
 
-- Aptos Labs for blockchain infrastructure
-- Pinata for IPFS hosting
-- scikit-learn, TensorFlow, XGBoost teams
-- Open source community
-
----
+- **Aptos Labs** - Blockchain infrastructure
+- **Pinata** - IPFS pinning service
+- **scikit-learn** - ML framework
+- **psutil** - System monitoring
+- **Flask** - Web framework
+- **Chart.js** - Dashboard visualization
 
 ## 📞 Support
 
-- **Documentation**: [docs.cybershield.io](https://docs.cybershield.io)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/cybershield/issues)
-- **Discord**: [Join our community](https://discord.gg/cybershield)
-- **Email**: support@cybershield.io
+For issues and questions:
+1. Check [CLI_GUIDE.md](CLI_GUIDE.md) for command help
+2. Check [NETWORK_ATTACK_GUIDE.md](NETWORK_ATTACK_GUIDE.md) for setup help
+3. Review troubleshooting section above
+
+## 🎓 Educational Purpose
+
+This project demonstrates:
+- Blockchain integration for security
+- ML-based anomaly detection
+- P2P distributed systems
+- Real-time monitoring and alerting
+- Decentralized storage (IPFS)
+- Zero-knowledge proofs
+
+**Note**: This is a proof-of-concept for educational purposes. For production deployment, additional security hardening and testing is required.
 
 ---
 
-## 🗺️ Roadmap
-
-- [ ] Support for multiple blockchains (Ethereum, Solana)
-- [ ] Web dashboard for monitoring
-- [ ] Mobile app for alerts
-- [ ] Integration with SIEM systems
-- [ ] Enterprise features (RBAC, compliance)
-- [ ] Cloud deployment templates
-- [ ] Kubernetes operator
-
----
-
-## ⭐ Star History
-
-If you find CyberShield useful, please star the repository!
-
----
-
-**Built with ❤️ for a more secure, decentralized future**
-
----
-
-## 🎯 Quick Links
-
-- [Get Started](START_HERE.md)
-- [Installation Guide](INSTALL.md)
-- [Demo Script](DEMO_SCRIPT.md)
-- [API Documentation](docs/API.md)
-- [Contributing](CONTRIBUTING.md)
-
----
-
-*CyberShield - Because security should be distributed, immutable, and verifiable.*
+**Version**: 1.0.0  
+**Status**: Demo/Research  
+**Last Updated**: April 2026

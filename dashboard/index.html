@@ -10,24 +10,111 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: #000;
             color: #e2e8f0;
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Flowing red silk wave animation - matching frontend */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(ellipse at center, 
+                rgba(239, 68, 68, 0.5) 0%, 
+                rgba(220, 38, 38, 0.4) 30%, 
+                rgba(185, 28, 28, 0.3) 60%, 
+                transparent 80%);
+            animation: wave-flow 20s ease-in-out infinite;
+            z-index: -4;
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(ellipse at center, 
+                rgba(220, 38, 38, 0.6) 0%, 
+                rgba(185, 28, 28, 0.4) 35%, 
+                rgba(127, 29, 29, 0.2) 65%, 
+                transparent 85%);
+            animation: wave-flow 25s ease-in-out infinite reverse;
+            animation-delay: -5s;
+            z-index: -3;
+        }
+        
+        /* Additional wave layers */
+        .wave-layer-3 {
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(ellipse at center, 
+                rgba(185, 28, 28, 0.5) 0%, 
+                rgba(127, 29, 29, 0.4) 40%, 
+                rgba(69, 10, 10, 0.3) 70%, 
+                transparent 90%);
+            animation: wave-flow 30s ease-in-out infinite;
+            animation-delay: -10s;
+            z-index: -2;
+            pointer-events: none;
+        }
+        
+        .wave-layer-4 {
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(ellipse at center, 
+                rgba(127, 29, 29, 0.6) 0%, 
+                rgba(69, 10, 10, 0.4) 45%, 
+                rgba(0, 0, 0, 0.3) 75%, 
+                transparent 95%);
+            animation: wave-flow 35s ease-in-out infinite reverse;
+            animation-delay: -15s;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        @keyframes wave-flow {
+            0%, 100% {
+                transform: translate(0%, 0%) rotate(0deg) scale(1);
+            }
+            25% {
+                transform: translate(10%, -5%) rotate(5deg) scale(1.1);
+            }
+            50% {
+                transform: translate(5%, 10%) rotate(-3deg) scale(1.05);
+            }
+            75% {
+                transform: translate(-8%, 5%) rotate(4deg) scale(1.08);
+            }
         }
         
         .header {
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(127, 29, 29, 0.4);
             border-radius: 12px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            backdrop-filter: blur(10px);
         }
         
         .header h1 {
             font-size: 2.5em;
-            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
@@ -66,17 +153,18 @@
         }
         
         .stat-card {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(127, 29, 29, 0.3);
             padding: 25px;
             border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.2);
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
         
         .stat-card:hover {
-            border-color: rgba(56, 189, 248, 0.5);
+            border-color: rgba(220, 38, 38, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.1);
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.2);
         }
         
         .stat-label {
@@ -90,15 +178,15 @@
         .stat-value {
             font-size: 2.5em;
             font-weight: 700;
-            color: #38bdf8;
+            color: #dc2626;
         }
         
         .stat-value.threat {
-            color: #f87171;
+            color: #ef4444;
         }
         
         .stat-value.safe {
-            color: #22c55e;
+            color: #4ade80;
         }
         
         @keyframes pulse-ring {
@@ -111,11 +199,12 @@
         }
         
         .chart-container {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(127, 29, 29, 0.3);
             padding: 25px;
             border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.2);
             margin-bottom: 30px;
+            backdrop-filter: blur(10px);
         }
         
         .chart-title {
@@ -125,12 +214,13 @@
         }
         
         .events-container {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(127, 29, 29, 0.3);
             padding: 25px;
             border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.2);
             max-height: 600px;
             overflow-y: auto;
+            backdrop-filter: blur(10px);
         }
         
         .event-item {
@@ -198,16 +288,16 @@
             display: inline-block;
             margin-top: 8px;
             padding: 4px 12px;
-            background: rgba(56, 189, 248, 0.2);
+            background: rgba(220, 38, 38, 0.2);
             border-radius: 4px;
-            color: #38bdf8;
+            color: #dc2626;
             text-decoration: none;
             font-size: 0.85em;
             transition: all 0.2s ease;
         }
         
         .blockchain-link:hover {
-            background: rgba(56, 189, 248, 0.3);
+            background: rgba(220, 38, 38, 0.3);
             transform: scale(1.05);
         }
         
@@ -218,8 +308,8 @@
         }
         
         .spinner {
-            border: 3px solid rgba(56, 189, 248, 0.3);
-            border-top: 3px solid #38bdf8;
+            border: 3px solid rgba(220, 38, 38, 0.3);
+            border-top: 3px solid #dc2626;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -244,14 +334,18 @@
             display: inline-block;
             padding: 4px 10px;
             margin: 0 5px;
-            background: rgba(129, 140, 248, 0.2);
+            background: rgba(220, 38, 38, 0.2);
             border-radius: 4px;
-            color: #818cf8;
+            color: #dc2626;
             font-size: 0.85em;
         }
     </style>
 </head>
 <body>
+    <!-- Wave animation layers -->
+    <div class="wave-layer-3"></div>
+    <div class="wave-layer-4"></div>
+    
     <div class="header">
         <h1>🛡️ CyberShield Dashboard</h1>
         <p class="subtitle">Real-Time Blockchain-Based Intrusion Detection System</p>
@@ -341,8 +435,8 @@
                     {
                         label: 'CPU %',
                         data: [],
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderColor: '#dc2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
                         tension: 0.4,
                         fill: true,
                         yAxisID: 'y'
@@ -350,8 +444,8 @@
                     {
                         label: 'Memory %',
                         data: [],
-                        borderColor: '#818cf8',
-                        backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
                         tension: 0.4,
                         fill: true,
                         yAxisID: 'y'

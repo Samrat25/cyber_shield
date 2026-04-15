@@ -46,12 +46,31 @@ def _check_key():
 
 # ── Main dashboard HTML page ────────────────────────────────────────────────
 @app.route("/")
+@app.route("/dashboard")
 def index():
+    """Serve React frontend."""
     key = request.args.get("key", "")
     if key != SESSION_KEY:
         return "<h2 style='font-family:system-ui;color:#f87171;padding:40px'>"\
                "403 — Invalid or missing dashboard key.</h2>", 403
-    return send_file(os.path.join(os.path.dirname(__file__), "index.html"))
+    
+    # Serve React build
+    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+    index_html = frontend_dist / "index.html"
+    
+    if not index_html.exists():
+        return "<h2 style='font-family:system-ui;color:#f59e0b;padding:40px'>"\
+               "⚠️ React frontend not built!<br><br>"\
+               "Run: <code>cd frontend && npm run build</code></h2>", 500
+    
+    return send_file(index_html)
+
+# Serve static assets
+@app.route("/<path:path>")
+def serve_static(path):
+    """Serve React static files."""
+    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+    return send_file(frontend_dist / path)
 
 # ── API: live metrics (last reading) ───────────────────────────────────────
 @app.route("/api/metrics")
@@ -243,3 +262,7 @@ def start(open_browser=True):
         threading.Timer(1.5, lambda: webbrowser.open(url)).start()
 
     app.run(host="0.0.0.0", port=DASHBOARD_PORT, debug=False, use_reloader=False)
+
+
+if __name__ == "__main__":
+    start(open_browser=False)

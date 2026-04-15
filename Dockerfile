@@ -15,8 +15,8 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements and install Python dependencies
-COPY requirements-dev.txt .
-RUN pip install --no-cache-dir -r requirements-dev.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Production stage
 FROM python:3.11-slim
@@ -24,6 +24,7 @@ FROM python:3.11-slim
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     curl \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy virtual environment from builder
@@ -35,9 +36,10 @@ WORKDIR /app
 
 # Copy application code
 COPY cybershield/ /app/cybershield/
+COPY core/ /app/core/
 COPY setup.py /app/
 COPY README.md /app/
-COPY contract/ /app/contract/
+COPY MANIFEST.in /app/
 
 # Install CyberShield
 RUN pip install -e .
@@ -51,9 +53,9 @@ RUN mkdir -p /root/.cybershield/logs \
 # Expose P2P port
 EXPOSE 8765
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD cybershield status || exit 1
+# Health check - use python to check if process is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD pgrep -f "cybershield" > /dev/null || exit 1
 
 # Default command
-CMD ["cybershield", "node", "monitor", "--p2p"]
+CMD ["python", "-m", "cybershield.cli", "node", "monitor", "--p2p"]

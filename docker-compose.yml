@@ -8,7 +8,7 @@ services:
     environment:
       - NODE_ID=node-1
       - P2P_PORT=8765
-      - APTOS_NETWORK=${APTOS_NETWORK}
+      - APTOS_NETWORK=${APTOS_NETWORK:-testnet}
       - APTOS_NODE_URL=${APTOS_NODE_URL}
       - APTOS_PRIVATE_KEY=${APTOS_PRIVATE_KEY}
       - APTOS_ADDRESS=${APTOS_ADDRESS}
@@ -23,10 +23,11 @@ services:
     restart: unless-stopped
     command: >
       sh -c "
-        cybershield node init &&
-        cybershield ml train --advanced &&
-        cybershield node register &&
-        cybershield node monitor --p2p --port 8765
+        echo 'Starting CyberShield Node 1...' &&
+        python -m cybershield.cli node init &&
+        python -m cybershield.cli ml train &&
+        python -m cybershield.cli node register &&
+        python -m cybershield.cli node monitor --p2p --port 8765
       "
 
   # Second node for P2P testing
@@ -36,7 +37,7 @@ services:
     environment:
       - NODE_ID=node-2
       - P2P_PORT=8766
-      - APTOS_NETWORK=${APTOS_NETWORK}
+      - APTOS_NETWORK=${APTOS_NETWORK:-testnet}
       - APTOS_NODE_URL=${APTOS_NODE_URL}
       - APTOS_PRIVATE_KEY=${APTOS_PRIVATE_KEY}
       - APTOS_ADDRESS=${APTOS_ADDRESS}
@@ -53,12 +54,14 @@ services:
     restart: unless-stopped
     command: >
       sh -c "
-        sleep 10 &&
-        cybershield node init &&
-        cybershield ml train &&
-        cybershield node register &&
-        cybershield network connect cybershield-node-1:8765 &&
-        cybershield node monitor --p2p --port 8766
+        echo 'Waiting for node 1...' &&
+        sleep 15 &&
+        echo 'Starting CyberShield Node 2...' &&
+        python -m cybershield.cli node init &&
+        python -m cybershield.cli ml train &&
+        python -m cybershield.cli node register &&
+        python -m cybershield.cli network connect cybershield-node-1:8765 &&
+        python -m cybershield.cli node monitor --p2p --port 8766
       "
 
   # Third node for P2P testing
@@ -68,7 +71,7 @@ services:
     environment:
       - NODE_ID=node-3
       - P2P_PORT=8767
-      - APTOS_NETWORK=${APTOS_NETWORK}
+      - APTOS_NETWORK=${APTOS_NETWORK:-testnet}
       - APTOS_NODE_URL=${APTOS_NODE_URL}
       - APTOS_PRIVATE_KEY=${APTOS_PRIVATE_KEY}
       - APTOS_ADDRESS=${APTOS_ADDRESS}
@@ -85,12 +88,14 @@ services:
     restart: unless-stopped
     command: >
       sh -c "
-        sleep 15 &&
-        cybershield node init &&
-        cybershield ml train &&
-        cybershield node register &&
-        cybershield network connect cybershield-node-1:8765 &&
-        cybershield node monitor --p2p --port 8767
+        echo 'Waiting for node 1...' &&
+        sleep 20 &&
+        echo 'Starting CyberShield Node 3...' &&
+        python -m cybershield.cli node init &&
+        python -m cybershield.cli ml train &&
+        python -m cybershield.cli node register &&
+        python -m cybershield.cli network connect cybershield-node-1:8765 &&
+        python -m cybershield.cli node monitor --p2p --port 8767
       "
 
   # Blockchain indexer - indexes all on-chain events
