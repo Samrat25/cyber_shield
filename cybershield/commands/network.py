@@ -169,6 +169,15 @@ async def _connect_async(peer_address):
 @click.option('--port', default=P2P_PORT, help='P2P port to listen on')
 def listen(port):
     """Start P2P server and wait for connections."""
+    from ..ui.banner import show_command_header, show_loading
+    
+    show_command_header("P2P Network Server", "Starting WebSocket listener for peer connections")
+    show_loading("Initializing P2P server", duration=1.0, steps=[
+        "Loading WebSocket server",
+        "Binding to port",
+        "Ready for connections"
+    ])
+    
     asyncio.run(_listen_async(port))
 
 
@@ -181,6 +190,8 @@ async def _listen_async(port):
         return
     
     from ..config import CONFIG_DIR
+    from rich import box
+    
     config_file = CONFIG_DIR / "node_config.json"
     
     if not config_file.exists():
@@ -190,9 +201,17 @@ async def _listen_async(port):
     config = json.loads(config_file.read_text())
     node_id = config['node_id']
     
-    console.print(Panel(f"[bold cyan]P2P Network Server — Real WebSocket Listener[/bold cyan]", expand=False))
-    console.print(f"\n[green]✓ Server starting on port {port}[/green]")
-    console.print(f"[dim]Waiting for peer connections...[/dim]\n")
+    console.print(Panel(
+        f"[bold green]✓ P2P Server Online[/bold green]\n\n"
+        f"[cyan]Node ID:[/cyan] [bold white]{node_id}[/bold white]\n"
+        f"[cyan]Port:[/cyan] [bold white]{port}[/bold white]\n"
+        f"[cyan]Status:[/cyan] [bold green]Listening[/bold green]\n\n"
+        f"[yellow]Waiting for peer connections...[/yellow]\n"
+        f"[dim]Press Ctrl+C to stop[/dim]",
+        border_style="green",
+        box=box.ROUNDED
+    ))
+    console.print()
     
     async def handle_peer(websocket):
         """Handles one WebSocket connection from a peer node."""

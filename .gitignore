@@ -20,7 +20,10 @@ logs/
 .idea/
 *.swp
 *.swo
-
+NETWORK_ATTACK_GUIDE.md
+QUICK_START_SECURITY.md
+windows_cpu_attack.py
+reset_node_status.py
 # Move build artifacts
 contract/build/
 contract/.aptos/

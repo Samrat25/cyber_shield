@@ -94,14 +94,21 @@ def _primary_trigger(payload):
 
 @click.group()
 def node():
-    """Node management commands."""
+    """Node management commands - Initialize, register, and monitor your security node."""
     pass
 
 
 @node.command()
 def init():
     """Initialize CyberShield node configuration."""
-    console.print(Panel("[bold cyan]CyberShield Node Initialization[/bold cyan]", expand=False))
+    from ..ui.banner import show_command_header, show_loading, show_success
+    
+    show_command_header("Node Initialization", "Setting up your CyberShield security node")
+    show_loading("Initializing node", duration=1.0, steps=[
+        "Generating node ID",
+        "Detecting network configuration",
+        "Creating configuration files"
+    ])
     
     config_file = CONFIG_DIR / "node_config.json"
     
@@ -132,10 +139,16 @@ def init():
     
     config_file.write_text(json.dumps(config, indent=2))
     
-    console.print(f"\n[green]✓[/green] Node initialized")
-    console.print(f"  Node ID: [cyan]{node_id}[/cyan]")
-    console.print(f"  Local IP: [cyan]{local_ip}[/cyan]")
-    console.print(f"  Config: [dim]{config_file}[/dim]\n")
+    console.print(Panel(
+        f"[bold green]✓ Node Initialized Successfully![/bold green]\n\n"
+        f"[cyan]Node ID:[/cyan] [bold white]{node_id}[/bold white]\n"
+        f"[cyan]Local IP:[/cyan] [bold white]{local_ip}[/bold white]\n"
+        f"[cyan]Config:[/cyan] [dim]{config_file}[/dim]\n\n"
+        f"[yellow]Next Step:[/yellow] Run [bold green]cybershield node register[/bold green]",
+        border_style="green",
+        box=box.ROUNDED
+    ))
+    console.print()
 
 
 @node.command()
@@ -146,8 +159,9 @@ def register(force):
     from ..storage.ipfs import IPFSClient
     from ..blockchain.aptos import AptosClient
     from ..core.db import upsert_node
+    from ..ui.banner import show_command_header, show_loading
     
-    console.print(Panel("[bold cyan]Node Registration[/bold cyan]", expand=False))
+    show_command_header("Node Registration", "Registering your node on blockchain and IPFS")
     
     config_file = CONFIG_DIR / "node_config.json"
     if not config_file.exists():
@@ -165,29 +179,45 @@ def register(force):
     node_id = config['node_id']
     local_ip = config['local_ip']
     
-    console.print(f"\n  Node ID: [cyan]{node_id}[/cyan]")
-    console.print(f"  IP: [cyan]{local_ip}[/cyan]\n")
+    console.print(Panel(
+        f"[bold cyan]Node Information[/bold cyan]\n\n"
+        f"[white]Node ID:[/white] [bold yellow]{node_id}[/bold yellow]\n"
+        f"[white]IP Address:[/white] [bold yellow]{local_ip}[/bold yellow]",
+        border_style="cyan",
+        box=box.ROUNDED
+    ))
+    console.print()
     
     # Pin to IPFS
-    with console.status("[yellow]Pinning to IPFS...[/yellow]"):
-        ipfs_client = IPFSClient()
-        reg_data = {
-            "type": "node_registration",
-            "node_id": node_id,
-            "ip": local_ip,
-            "registered_at": datetime.datetime.now(datetime.UTC).isoformat(),
-            "status": "online",
-            "version": "1.0.0"
-        }
-        cid = ipfs_client.pin_json(reg_data, f"cybershield-node-{node_id}")
+    show_loading("Pinning to IPFS", duration=1.5, steps=[
+        "Connecting to IPFS network",
+        "Uploading node data",
+        "Generating CID"
+    ])
+    
+    ipfs_client = IPFSClient()
+    reg_data = {
+        "type": "node_registration",
+        "node_id": node_id,
+        "ip": local_ip,
+        "registered_at": datetime.datetime.now(datetime.UTC).isoformat(),
+        "status": "online",
+        "version": "1.0.0"
+    }
+    cid = ipfs_client.pin_json(reg_data, f"cybershield-node-{node_id}")
     
     console.print(f"  [green]✓ IPFS CID:[/green] [cyan]{cid}[/cyan]")
     console.print(f"  [dim]  → {ipfs_client.gateway_url(cid)}[/dim]\n")
     
     # Register on blockchain
-    with console.status("[yellow]Submitting to Aptos blockchain...[/yellow]"):
-        aptos_client = AptosClient()
-        tx_hash = aptos_client.register_node(node_id, local_ip, cid)
+    show_loading("Submitting to Aptos blockchain", duration=2.0, steps=[
+        "Connecting to Aptos testnet",
+        "Creating transaction",
+        "Waiting for confirmation"
+    ])
+    
+    aptos_client = AptosClient()
+    tx_hash = aptos_client.register_node(node_id, local_ip, cid)
     
     console.print(f"  [green]✓ TX Hash:[/green] [cyan]{tx_hash}[/cyan]")
     console.print(f"  [dim]  → {aptos_client.explorer_url(tx_hash)}[/dim]\n")
