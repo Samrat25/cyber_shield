@@ -46,31 +46,50 @@ def _check_key():
 
 # ── Main dashboard HTML page ────────────────────────────────────────────────
 @app.route("/")
-@app.route("/dashboard")
 def index():
-    """Serve React frontend."""
     key = request.args.get("key", "")
     if key != SESSION_KEY:
         return "<h2 style='font-family:system-ui;color:#f87171;padding:40px'>"\
                "403 — Invalid or missing dashboard key.</h2>", 403
     
-    # Serve React build
-    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
-    index_html = frontend_dist / "index.html"
+    # Read the HTML file
+    html_path = os.path.join(os.path.dirname(__file__), "index.html")
+    with open(html_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
     
-    if not index_html.exists():
-        return "<h2 style='font-family:system-ui;color:#f59e0b;padding:40px'>"\
-               "⚠️ React frontend not built!<br><br>"\
-               "Run: <code>cd frontend && npm run build</code></h2>", 500
+    # Add aggressive cache busting and force black background
+    import time
+    version = str(int(time.time()))
+    cache_buster = f'''
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate, post-check=0, pre-check=0">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <style>
+        html, body {{
+            background: #000000 !important;
+            background-color: #000000 !important;
+            color: #e2e8f0 !important;
+        }}
+        * {{
+            box-sizing: border-box;
+        }}
+    </style>
+    <script>
+        // Force reload if cached
+        if (performance.navigation.type === 2) {{
+            location.reload(true);
+        }}
+    </script>
+    '''
+    html_content = html_content.replace('</head>', cache_buster + '</head>')
     
-    return send_file(index_html)
-
-# Serve static assets
-@app.route("/<path:path>")
-def serve_static(path):
-    """Serve React static files."""
-    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
-    return send_file(frontend_dist / path)
+    from flask import Response
+    response = Response(html_content, mimetype='text/html')
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
 
 # ── API: live metrics (last reading) ───────────────────────────────────────
 @app.route("/api/metrics")

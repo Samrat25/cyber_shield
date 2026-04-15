@@ -17,8 +17,6 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { lazy, Suspense } from "react"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import Dashboard from "@/pages/Dashboard"
 
 const Silk = lazy(() => import("@/components/Silk"))
 
@@ -270,7 +268,7 @@ function CodePanel({ label, title, code, className }: CodePanelProps) {
   )
 }
 
-function LandingPage() {
+function App() {
   return (
     <main id="top" className="relative min-h-screen overflow-x-hidden text-white">
       <div className="fixed inset-0 -z-10 overflow-hidden">
@@ -628,18 +626,6 @@ function LandingPage() {
         </section>
       </div>
     </main>
-  )
-}
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
   )
 }
 
