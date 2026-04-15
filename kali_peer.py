@@ -61,6 +61,14 @@ async def connect_to_server(server_address):
     print(f"\nNode ID: {node_id}")
     print(f"Local IP: {local_ip}")
     print(f"Server: {server_address}")
+    
+    # Validate server address format
+    if not server_address or server_address.startswith("-"):
+        print("\n✗ Error: Invalid server address format")
+        print("Usage: python3 kali_peer.py --server <IP>:<PORT>")
+        print("Example: python3 kali_peer.py --server 192.168.29.58:8765")
+        return
+    
     print("\nConnecting...\n")
     
     uri = f"ws://{server_address}"
@@ -125,19 +133,43 @@ async def connect_to_server(server_address):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Kali Linux peer node for CyberShield")
+    parser = argparse.ArgumentParser(
+        description="Kali Linux peer node for CyberShield",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python3 kali_peer.py --server 192.168.29.58:8765
+  python3 kali_peer.py --server 10.0.0.5:8765
+        """
+    )
     parser.add_argument(
         "--server",
         required=True,
-        help="Windows server address (e.g., 192.168.1.100:8765)"
+        metavar="IP:PORT",
+        help="Windows server address (e.g., 192.168.29.58:8765)"
     )
     
     args = parser.parse_args()
     
-    # Validate server address
+    # Validate server address format
     if ":" not in args.server:
-        print("Error: Server address must include port (e.g., 192.168.1.100:8765)")
+        print("✗ Error: Server address must include port")
+        print("\nCorrect format: IP:PORT")
+        print("Example: python3 kali_peer.py --server 192.168.29.58:8765")
         exit(1)
+    
+    # Validate IP and port
+    try:
+        ip, port = args.server.split(":")
+        port = int(port)
+        if port < 1 or port > 65535:
+            raise ValueError("Port must be between 1 and 65535")
+    except ValueError as e:
+        print(f"✗ Error: Invalid server address - {e}")
+        print("\nExample: python3 kali_peer.py --server 192.168.29.58:8765")
+        exit(1)
+    
+    print(f"\n[Kali Peer] Starting connection to {args.server}...")
     
     try:
         asyncio.run(connect_to_server(args.server))

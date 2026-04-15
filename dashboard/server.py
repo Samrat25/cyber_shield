@@ -129,7 +129,6 @@ def api_p2p():
     Returns real P2P topology.
     - YOUR node from logs/node_state.json
     - Real connected peers from logs/peers.json
-    - Mock node-3 to show network has scale
     """
     _check_key()
     import json
@@ -187,16 +186,7 @@ def api_p2p():
             "os"    : p.get("os", ""),
         })
     
-    # Always add one mock node for visual scale
-    nodes.append({
-        "id"    : "node-mock",
-        "ip"    : "192.168.29.99",
-        "status": "online",
-        "type"  : "mock",
-        "role"  : "peer",
-        "cpu"   : None,
-        "mem"   : None,
-    })
+    # Mock node removed - only show real nodes
     
     compromised = node1_status in ("COMPROMISED", "compromised")
     
