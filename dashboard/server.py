@@ -150,7 +150,7 @@ def api_p2p():
                 pass
     
     node1_id     = state.get("node_id", "SAMRAT")
-    node1_ip     = state.get("ip", "192.168.29.58")
+    node1_ip     = state.get("ip", "10.69.115.68")
     node1_status = state.get("status", "online")
     
     nodes = [{

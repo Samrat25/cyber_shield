@@ -45,8 +45,8 @@ ipconfig
 
 Look for **IPv4 Address** under your active network adapter:
 ```
-Ethernet adapter Ethernet:
-   IPv4 Address. . . . . . . . . . . : 192.168.1.100
+Wireless LAN adapter Wi-Fi:
+   IPv4 Address. . . . . . . . . . . : 10.69.115.68
 ```
 
 **Note this IP address** - you'll need it for Kali connection.
@@ -179,7 +179,7 @@ python3 kali_peer.py --server <WINDOWS_IP>:8765
 
 **Example:**
 ```bash
-python3 kali_peer.py --server 192.168.1.100:8765
+python3 kali_peer.py --server 10.69.115.68:8765
 ```
 
 **Expected output:**
@@ -190,7 +190,7 @@ CyberShield Kali Peer Node
 
 Node ID: kali-kali
 Local IP: 192.168.1.50
-Server: 192.168.1.100:8765
+Server: 10.69.115.68:8765
 
 Connecting...
 
@@ -398,7 +398,7 @@ sudo hping3 -S -p 80 --flood <WINDOWS_IP>
 
 **Example:**
 ```bash
-sudo hping3 -S -p 80 --flood 192.168.1.100
+sudo hping3 -S -p 80 --flood 10.69.115.68
 ```
 
 **Step 3: Watch Monitor**

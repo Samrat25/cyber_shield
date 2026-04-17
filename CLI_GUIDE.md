@@ -69,7 +69,7 @@ cybershield node init
 
 ✓ Node initialized
   Node ID: SAMRAT
-  Local IP: 192.168.1.100
+  Local IP: 10.69.115.68
   Config: C:\Users\...\node_config.json
 ```
 
@@ -108,7 +108,7 @@ cybershield node register --force
 ╰───────────────────────────────────────╯
 
   Node ID: SAMRAT
-  IP: 192.168.1.100
+  IP: 10.69.115.68
 
 ✓ IPFS CID: QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   → https://gateway.pinata.cloud/ipfs/QmXXXX...
@@ -147,13 +147,13 @@ cybershield node monitor
 cybershield node monitor --p2p --port 8766
 
 # Connect to existing P2P network (client mode)
-cybershield node monitor --p2p --connect 192.168.1.50:8765
+cybershield node monitor --p2p --connect 10.69.115.68:8765
 ```
 
 **Options:**
 - `--p2p` / `--no-p2p` - Enable/disable P2P networking (default: disabled)
 - `--port INTEGER` - P2P port to listen on (default: 8766)
-- `--connect ADDRESS` - Connect to peer address (e.g., 192.168.1.50:8765)
+- `--connect ADDRESS` - Connect to peer address (e.g., 10.69.115.68:8765)
 
 **What it does:**
 - Collects system metrics every 5 seconds
@@ -294,7 +294,7 @@ Connect to a peer node as a pure client (no server).
 **Usage:**
 ```bash
 # Connect to peer (must include port)
-cybershield network connect 192.168.1.50:8765
+cybershield network connect 10.69.115.68:8765
 ```
 
 **Arguments:**
